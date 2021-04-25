@@ -127,12 +127,12 @@ STATIC_URL = '/static/'
 
 # HA Static files (CSS, JavaScript, Images)
 # set where to store ()& collect) them; served with whitenoise.
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+#PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+#STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(PROJECT_ROOT, '../static-assets'),
-)
+#STATICFILES_DIRS = (
+#    os.path.join(PROJECT_ROOT, '../static-assets'),
+#)
 
 # Heroku Simplified static file serving.
 if 'django_heroku' in sys.modules:
@@ -140,7 +140,7 @@ if 'django_heroku' in sys.modules:
 
 # HA Media files
 MEDIA_ROOT = '/tmp'  # for now files are uploaded manually!
-MEDIA_URL = 'https://hadiasghari.com/dreamcity/'
+# MEDIA_URL = ''
 
 
 # HA cookie-based sessions
@@ -151,5 +151,6 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 # HA for Heroku.
 # loads actual DB settings, etc. no need to remark on local
 if 'django_heroku' in sys.modules:
+	DEBUG_PROPAGATE_EXCEPTIONS = True
 	django_heroku.settings(locals())
-	 # ignore locally if module is not installed (hence not imported) 
+	 # ignore locally if module is not installed (hence not imported)
