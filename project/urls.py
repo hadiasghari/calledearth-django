@@ -20,7 +20,7 @@ from earth import views as ev
 
 
 urlpatterns = [
-    path('', ev.web_home),  # HA redirect index  earth home
+    path('', ev.web_home, name='earth_webhome'),
     path('earth/', include('earth.urls')),
     path('admin/', admin.site.urls),
 ]
