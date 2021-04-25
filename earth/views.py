@@ -94,8 +94,8 @@ def godot_get_texts(request, game):
 def godot_get_stats(request, game):
     # For HUD, return list of participants. maybe some other stuff too.
     partis = Participant.objects.filter(game=game)
-    data = [{'participants': "".join(p.emoji for p in partis)}]
-    return JsonResponse(data, safe=False)
+    data = {'participants': [ord(p.emoji) for p in partis]}
+    return JsonResponse(data)
 
 
 def godot_set_prompt(request, game, prompt):
