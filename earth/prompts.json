@@ -1,0 +1,22 @@
+[
+  {
+    "model": "earth.prompt",
+    "pk": 1,
+    "fields": { "provocation": "Once upon a time..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 2,
+    "fields": { "provocation": "When I awoke I found..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 3,
+    "fields": { "provocation": "In the end, there was nothing more important than..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 4,
+    "fields": { "provocation": "I learned..."}
+  }
+]

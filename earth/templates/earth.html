@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<head>
+		<title>We Called It Earth</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- TODO: link rel="icon" type="image/png" href="{% static 'flower48.png' %}" sizes="48x48"-->
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<style>
+		/*@keyframes fadein {
+		    from { opacity: 0; }
+		    to   { opacity: 1; }
+		}
+		body {
+			background-color: black;
+			color: white;
+			animation: fadein 10s;
+			font-family: monospace;
+			font-size: 12px;
+		}*/
+	/*	div.outest {
+			position: relative;
+			width: 100%;
+			margin: 0;
+		}
+		div.outer {
+			position: absolute;
+			top: 6%;
+			left: 20%;
+			vertical-align: middle;
+		}*/
+		a:hover {
+			   border: 1px dotted red;
+		}
+		/*div.form {
+			border: 1px solid pink;
+			padding: 5px;
+			color: white;
+		}
+		div.form a {
+			text-decoration-style: dotted;
+		}*/
+		footer {
+			text-align: center;
+      font-size: xx-small;
+		}
+		footer a {
+			text-decoration-style: dotted;
+		}
+	  </style>
+</head>
+<body>
+		<!--TODO place these mid screen ..-->
+		{% if status == "waitstart" %}
+      <div  class="w3-card-4 w3-red">
+      	<p>WAITING FOR A NEW GAME TO START....</p>
+      	<script>window.setInterval('window.location.reload()', 10000);</script>
+			</div>
+    {% elif status == "pickemoji" %}
+      <div  class="w3-card-4 w3-yellow">
+  		  Pick Your Emoji: <br>
+        {% for c in emojis %}
+          <span><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
+          {% if forloop.counter|divisibleby:10 %}<br />{% endif %}
+        {% endfor %}
+      </div>
+    {% elif status == "waitprompt" %}
+			<div  class="w3-card-4 w3-gray">
+				<p>Hey {{ emoji }},
+					we are waiting for our Avatar to find the next prompt...</p>
+					{% if lastsaid %}
+					<p>(Last you said: "{{ lastsaid }}")</p> {% endif %}
+				<script>window.setInterval('window.location.reload()', 5000);</script>
+			</div>
+		{% elif status == "prompt" %}
+			<div  class="w3-card-4 w3-green">
+				<p>{{ prompt.provocation }}</p>
+				<form method="post">
+					{% csrf_token %}
+					{{ emoji }} <input type="text" id="f_text" name="f_text">
+					<input type="hidden" id="f_promptpk" name="f_promptpk" value="{{ prompt.pk }}">
+					<input value="→" type="submit">
+				</form>
+				<!-- TODO: limit response chars & probably set a 1 minute timeout ... -->
+			</div>
+		{% else %}
+			<div  class="w3-card-4 w3-red">
+				<p>IMPOSSIBLE ERROR</p>
+			</div>
+		{% endif %}
+
+	<footer>
+		"We Called It Earth", concept and artwork by Jessica Renfro, programming by Hadi Asghari.
+    <!-- video, music, images, and animation  -->
+		<!-- a href="https://dramaturgicalpracticesandmakingpublic.weebly.com/jessica.html" target="_blank">Project Description.</a-->
+	</footer>
+	 <script>
+
+	 </script>
+</body>
+</html>
