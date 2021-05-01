@@ -78,7 +78,8 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # our defaults are good
     # TODO: maybe set all other games to not-active ?
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
-    # works, but unnecessary, since later calling will mix. Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
+    # works, but unnecessary, since later calling will mix.
+    Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
     return JsonResponse(game.pk, safe=False)
 
 
