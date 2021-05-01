@@ -40,6 +40,12 @@
 		div.form a {
 			text-decoration-style: dotted;
 		}*/
+		.center {
+	  margin: auto;
+	  width: 50%;
+	  border: 3px solid green;
+	  padding: 10px;
+		}
 		footer {
 			text-align: center;
       font-size: xx-small;
@@ -52,12 +58,12 @@
 <body>
 		<!--TODO place these mid screen ..-->
 		{% if status == "waitstart" %}
-      <div  class="w3-card-4 w3-red">
+      <div  class="w3-card-4 w3-red center">
       	<p>WAITING FOR A NEW GAME TO START....</p>
       	<script>window.setInterval('window.location.reload()', 10000);</script>
 			</div>
     {% elif status == "pickemoji" %}
-      <div  class="w3-card-4 w3-yellow">
+      <div  class="w3-card-4 w3-yellow center">
   		  Pick Your Emoji: <br>
         {% for c in emojis %}
           <span><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
@@ -65,7 +71,7 @@
         {% endfor %}
       </div>
     {% elif status == "waitprompt" %}
-			<div  class="w3-card-4 w3-gray">
+			<div  class="w3-card-4 w3-gray center">
 				<p>Hey {{ emoji }},
 					we are waiting for our Avatar to find the next prompt...</p>
 					{% if lastsaid %}
@@ -75,10 +81,10 @@
 		{% elif status == "prompt" %}
 			<div  class="w3-card-4 w3-green">
 				<p>{{ prompt.provocation }}</p>
-				<form method="post">
-					{% csrf_token %}
+				<form>
+					{% comment csrf_token %}{% endcomment %}
 					{{ emoji }} <input type="text" id="f_text" name="f_text">
-					<input type="hidden" id="f_promptpk" name="f_promptpk" value="{{ prompt.pk }}">
+					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit">
 				</form>
 				<!-- TODO: limit response chars & probably set a 1 minute timeout ... -->

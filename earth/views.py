@@ -33,23 +33,23 @@ def web_home(request):
             del request.session['participant']
             return HttpResponseRedirect(reverse('earth_webhome'))
 
-    # 5. game play in progress. wait for an active prompt
+    # 5. did we get a form response, then save it and reload
+    if 'f_text' in request.GET:
+        f_t = request.GET['f_text']
+        f_p = Prompt.objects.get(pk=request.GET['f_pk'])
+        if f_t:
+            text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=f_t)
+            text.save()
+            game.active_prompt = None
+            game.save()
+            return HttpResponseRedirect(reverse('earth_webhome'))  # is this correct? no form?
+
+    # 6. no active-prompt?  wait for one in this stage of game-play
     if not game.active_prompt:
         texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
         last = texts[0].text if texts else None
         return render(request, 'earth.html', {'status': 'waitprompt', 'emoji': parti.emoji,
                                               'lastsaid': last})
-
-    # 6. did we get a form response, then save it and reload
-    if request.method == 'POST':
-        f_t = request.POST['f_text']
-        f_p = Prompt.objects.get(pk=request.POST['f_promptpk'])
-        if f_t:
-            text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=f_t)
-            game.active_prompt = None
-            game.save()
-            return HttpResponseRedirect(reverse('earth_webhome'))
-
     # 7. otherwise send a prompt form
     return render(request, 'earth.html', {'status': 'prompt', 'emoji': parti.emoji,
                                           'prompt': game.active_prompt})
@@ -78,7 +78,7 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # our defaults are good
     # TODO: maybe set all other games to not-active ?
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
-    Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
+    # works, but unnecessary, since later calling will mix. Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
     return JsonResponse(game.pk, safe=False)
 
 
