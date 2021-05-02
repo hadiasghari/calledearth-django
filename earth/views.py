@@ -86,9 +86,8 @@ def godot_new_game(request):
 def godot_get_texts(request, game):
     # may add: request.GET["afterpk"]   # only latest texts
     texts = Text.objects.filter(game=game).order_by('pk')
-    emoji =  w.participant.emoji if w.participant else "?"
-    data = [{ 'pk': w.pk, 'location': w.location, 'text': f"{emoji}: {w.text}",
-             'parti_emoji': emoji}
+    data = [{ 'pk': w.pk, 'location': w.location, 'text': f"{w.participant.emoji} {w.text}",
+             'parti_emoji': w.participant.emoji}
             for w in texts	]
     return JsonResponse(data, safe=False)
 

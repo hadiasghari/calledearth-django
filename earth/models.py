@@ -37,7 +37,7 @@ class Prompt(models.Model):
 
 class Text(models.Model):
 	 game = models.ForeignKey(GamePlay, on_delete=models.PROTECT, null=True)
-	 participant = models.ForeignKey(Participant, on_delete=models.PROTECT, null=True)
+	 participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
 	 prompt = models.ForeignKey(Prompt, on_delete=models.PROTECT, null=True, blank=True)  # if response to prompt
 	 created_at = models.DateTimeField(default=timezone.now)
 	 level = models.IntegerField(default=1)  # for when more levels
