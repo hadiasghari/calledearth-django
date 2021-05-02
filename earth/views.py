@@ -75,10 +75,10 @@ def find_active_game():
 
 
 def godot_new_game(request):
-    game = GamePlay.objects.create()  # our defaults are good
-    # TODO: maybe set all other games to not-active ?
+    game = GamePlay.objects.create()  # game defaults are good
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
-    # works, but unnecessary, since later calling will mix.
+    # delete all existing hello world messages from system!
+    Text.objects.filter(participant=parti, location=0).delete()
     Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
     return JsonResponse(game.pk, safe=False)
 
@@ -86,8 +86,9 @@ def godot_new_game(request):
 def godot_get_texts(request, game):
     # may add: request.GET["afterpk"]   # only latest texts
     texts = Text.objects.filter(game=game).order_by('pk')
-    data = [{ 'pk': w.pk, 'location': w.location, 'text': w.text,
-             'parti_emoji': w.participant.emoji if w.participant else "?",}
+    emoji =  w.participant.emoji if w.participant else "?"
+    data = [{ 'pk': w.pk, 'location': w.location, 'text': f"{emoji}: {w.text}",
+             'parti_emoji': emoji}
             for w in texts	]
     return JsonResponse(data, safe=False)
 

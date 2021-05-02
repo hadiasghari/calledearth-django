@@ -9,7 +9,7 @@ class GamePlay(models.Model):
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
 	# might need last avatar level/location as the game proceeds
 	# the active-prompt can have a location; and have who/what caused it;
-	notes = models.TextField(blank=True, null=True)  # for ourselves to recall this game
+	description = models.TextField(blank=True, null=True)  # for ourselves to recall this game
 
 	def __str__(self):
 		return "GP{0}".format(self.pk)
@@ -20,6 +20,7 @@ class Participant(models.Model):
 	joined_at = models.DateTimeField(default=timezone.now)
 	emoji = models.CharField(max_length=10, default="👓")  # similar to nickname, for game users
 	typing = models.NullBooleanField()   # for future to show is typing on screen
+	geo = models.CharField(max_length=50, blank=True, null=True)  # geolocation
 
 
 class Prompt(models.Model):

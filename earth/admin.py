@@ -19,7 +19,7 @@ class TextAdmin(admin.ModelAdmin):
 
 
 class GamePlayAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'start_time', 'is_active', 'notes']
+    list_display = ['pk', 'start_time', 'is_active', 'texts', 'participants']
     ordering = ['-pk', ]
 
     def is_active(self, obj):
@@ -28,11 +28,20 @@ class GamePlayAdmin(admin.ModelAdmin):
         return b
     is_active.boolean = True
 
+    def texts(self, obj):
+        return obj.text_set.count()
+
+    def participants(self, obj):
+        return obj.participant_set.count()
+
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'joined_at', 'emoji']
+    list_display = ['pk', 'game', 'emoji', 'joined_at', 'geo', 'texts']
     list_filter = ['game']
     ordering = ['-pk', ]
+
+    def texts(self, obj):
+        return obj.text_set.count()
 
 
 admin.site.register(GamePlay, GamePlayAdmin)
