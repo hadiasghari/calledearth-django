@@ -19,7 +19,7 @@ class TextAdmin(admin.ModelAdmin):
 
 
 class GamePlayAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'start_time', 'is_active', 'texts', 'participants']
+    list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'texts', 'participants']
     ordering = ['-pk', ]
 
     def is_active(self, obj):

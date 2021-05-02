@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.core.serializers import serialize
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from .models import *
 
 
@@ -103,9 +104,11 @@ def godot_get_stats(request, game):
     return JsonResponse(data)
 
 
+#for POST: @csrf_exempt
 def godot_set_prompt(request, game, prompt):
     go = GamePlay.objects.get(pk=game)
-    po = Prompt.objects.get(pk=prompt)
+    po = Prompt.objects.get(pk=prompt)  # request.POST['prompt'])
     go.active_prompt = po
+    # LATER: go.last_location = request.POST['location']
     go.save()
     return JsonResponse(True, safe=False)

@@ -7,8 +7,8 @@ class GamePlay(models.Model):
 	active = models.BooleanField(default=True)  # set to False when quitting if we can
 	game_ver = models.IntegerField(default=1)  # for future game versions
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
-	# might need last avatar level/location as the game proceeds
-	# the active-prompt can have a location; and have who/what caused it;
+	last_location = models.CharField(max_length=50, null=True, blank=True)  # location of active prompt/avatar
+	# might also need last avatar level as the game proceeds
 	description = models.TextField(blank=True, null=True)  # for ourselves to recall this game
 
 	def __str__(self):
