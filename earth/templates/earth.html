@@ -66,7 +66,7 @@
       <div  class="w3-card-4 w3-yellow center">
   		  Pick Your Emoji: <br>
         {% for c in emojis %}
-          <span><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
+          <span style="font-size:larger"><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
           {% if forloop.counter|divisibleby:10 %}<br />{% endif %}
         {% endfor %}
       </div>
@@ -84,10 +84,12 @@
 				<form>
 					{% comment csrf_token %}{% endcomment %}
 					{{ emoji }} <!-- input type="text" id="f_text" name="f_text"-->
-					<textarea id="f_text" name="f_text"></textarea>
+					<textarea id="f_text" name="f_text" max_length=200></textarea>
+					<!-- TODO: Set max characters -->
 					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit">
 				</form>
+				<script>document.getElementById('f_text').focus();</script>
 				<!-- TODO: limit response chars & probably set a 1 minute timeout ... -->
 			</div>
 		{% else %}
