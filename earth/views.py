@@ -80,14 +80,16 @@ def godot_new_game(request):
     # delete all existing hello world messages from system!
     Text.objects.filter(participant=parti, location=0).delete()
     Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
+    # let's also delete all empty games while here to help admin UX
+    GamePlay.objects.filter(participant__isnull=True, text__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
 def godot_get_texts(request, game):
     # may add: request.GET["afterpk"]   # only latest texts
     texts = Text.objects.filter(game=game).order_by('pk')
-    data = [{ 'pk': w.pk, 'location': w.location, 'text': f"{w.participant.emoji} {w.text}",
-             'parti_emoji': w.participant.emoji}
+    data = [{ 'pk': w.pk, 'location': w.location, 'text': w.text,
+             'parti_emoji': w.participant.emoji, 'parti_code': ord(w.participant.emoji)}
             for w in texts	]
     return JsonResponse(data, safe=False)
 
