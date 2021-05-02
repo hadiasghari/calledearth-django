@@ -73,24 +73,25 @@
     {% elif status == "waitprompt" %}
 			<div  class="w3-card-4 w3-gray center">
 				<p>Hey {{ emoji }},
-					we are waiting for our Avatar to find the next prompt...</p>
+					we are waiting for our Avatar to find the next story fragment...<br />(When the prompt appears, write the first words that come to you, and press ‘→’)</p>
 					{% if lastsaid %}
-					<p>(Last you said: "{{ lastsaid }}")</p> {% endif %}
+					<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
 				<script>window.setInterval('window.location.reload()', 5000);</script>
 			</div>
 		{% elif status == "prompt" %}
-			<div  class="w3-card-4 w3-green">
+			<div  class="w3-card-4 w3-green center">
 				<p>{{ prompt.provocation }}</p>
 				<form>
 					{% comment csrf_token %}{% endcomment %}
-					{{ emoji }} <input type="text" id="f_text" name="f_text">
+					{{ emoji }} <!-- input type="text" id="f_text" name="f_text"-->
+					<textarea id="f_text" name="f_text"></textarea>
 					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit">
 				</form>
 				<!-- TODO: limit response chars & probably set a 1 minute timeout ... -->
 			</div>
 		{% else %}
-			<div  class="w3-card-4 w3-red">
+			<div  class="w3-card-4 w3-red center">
 				<p>IMPOSSIBLE ERROR</p>
 			</div>
 		{% endif %}

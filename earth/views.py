@@ -21,6 +21,7 @@ def web_home(request):
     if 'e' in request.GET:
         emoji = request.GET['e']
         parti = Participant.objects.create(game=game, emoji=emoji)
+        # TODO: add geolocation of participant!
         request.session['participant'] = parti.pk  # cache for next time
         return HttpResponseRedirect(reverse('earth_webhome'))
 
@@ -80,7 +81,8 @@ def godot_new_game(request):
     # delete all existing hello world messages from system!
     Text.objects.filter(participant=parti, location=0).delete()
     Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
-    # let's also delete all empty games while here to help admin UX
+    # let's also delete all empty participants & games, while at it, to clear admin UX
+    Participant.objects.filter(text__isnull=True).delete()
     GamePlay.objects.filter(participant__isnull=True, text__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 

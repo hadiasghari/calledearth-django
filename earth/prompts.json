@@ -2,21 +2,31 @@
   {
     "model": "earth.prompt",
     "pk": 1,
-    "fields": { "provocation": "Once upon a time..."}
+    "fields": { "provocation": "Once upon a time, we called it Earth. But now, it is called..."}
   },
   {
     "model": "earth.prompt",
     "pk": 2,
-    "fields": { "provocation": "When I awoke I found..."}
+    "fields": { "provocation": "I remember a diaphanous boundary running along the outside of it, a fiery core in the center, and a home sandwiched precariously between..."}
   },
   {
     "model": "earth.prompt",
     "pk": 3,
-    "fields": { "provocation": "In the end, there was nothing more important than..."}
+    "fields": { "provocation": "Memories watered the seeds of the garden..."}
   },
   {
     "model": "earth.prompt",
     "pk": 4,
-    "fields": { "provocation": "I learned..."}
+    "fields": { "provocation": "We slept soundly under the soil..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 5,
+    "fields": { "provocation": "When I found the sun, she whispered a secret to me..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 6,
+    "fields": { "provocation": "I dug my toes in deep—almost there now..."}
   }
 ]
