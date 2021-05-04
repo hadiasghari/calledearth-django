@@ -26,13 +26,13 @@ class Participant(models.Model):
 class Prompt(models.Model):
 	# we have some initial prompts. load fixture with: `manage.py loaddata`
 	provocation = models.CharField(max_length=500)  # The Prompt Question
+	# maybe in future: add a picture for the prompt
 	active = models.BooleanField(default=True)
-	# maybe in future: user_generated = models.BooleanField(default=False), also game/author...
-	# maybe in future: add a picture
-	# maybe : how many do we need to respond?
+	level = models.CharField(max_length=10, null=True, blank=True)
+	# location & fill correctly are view related and should be in godot not in django/db
 
 	def __str__(self):
-		return self.provocation
+		return f"[{self.level}.{self.pk}] {self.provocation[:30]}"
 
 
 class Text(models.Model):
@@ -40,7 +40,7 @@ class Text(models.Model):
 	 participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
 	 prompt = models.ForeignKey(Prompt, on_delete=models.PROTECT, null=True, blank=True)  # if response to prompt
 	 created_at = models.DateTimeField(default=timezone.now)
-	 level = models.IntegerField(default=1)  # for when more levels
-	 location = models.FloatField(null=True, blank=True)  # where the words have been entered
+	 #level = models.IntegerField(default=1)  # for when more levels
+	 #location = models.FloatField(null=True, blank=True)  # where the words have been entered
 	 text = models.TextField()  # The text (words) enetered by the participant
 	 color = models.IntegerField(blank=True, null=True)

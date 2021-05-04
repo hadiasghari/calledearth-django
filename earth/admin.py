@@ -5,16 +5,15 @@ from datetime import timedelta
 
 
 class TextAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'who', 'created_at', 'location', 'text']
+    list_display = ['pk', 'game', 'who', 'created_at', 'prompt', 'text']
     list_filter = ['game']
     ordering = ['-pk', ]
 
     def who(self, obj):
-        try:
-            s = obj.participant.emoji
-        except:
-            s = ""
-        return s
+        return obj.participant.emoji if obj and obj.participant else ""
+
+    def prompt(self, obj):
+        return obj.prompt if obj else ""
 
 
 
@@ -44,7 +43,16 @@ class ParticipantAdmin(admin.ModelAdmin):
         return obj.text_set.count()
 
 
+class PromptAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'level', 'provocation', 'active', 'responses']
+    ordering = ['-pk', ]
+
+    def responses(self, obj):
+        return obj.text_set.count()
+
+
+
 admin.site.register(GamePlay, GamePlayAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Text, TextAdmin)
-admin.site.register(Prompt)
+admin.site.register(Prompt, PromptAdmin)

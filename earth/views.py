@@ -57,7 +57,6 @@ def web_home(request):
                                           'prompt': game.active_prompt})
 
 
-
 def build_emoji_list():
     emojis = []
     # see https://www.w3schools.com/charsets/ref_emoji.asp
@@ -80,20 +79,28 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # game defaults are good
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
     # delete all existing hello world messages from system!
-    Text.objects.filter(participant=parti, location=0).delete()
-    Text.objects.create(game=game, participant=parti, location=0, text="Hello World!")
+    Text.objects.filter(participant=parti, prompt__isnull=True).delete()
+    Text.objects.create(game=game, participant=parti, text="Hello World!")
     # let's also delete all empty participants & games, while at it, to clear admin UX
     Participant.objects.filter(text__isnull=True).delete()
     GamePlay.objects.filter(participant__isnull=True, text__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
-def godot_get_texts(request, game):
-    # may add: request.GET["afterpk"]   # only latest texts
-    texts = Text.objects.filter(game=game).order_by('pk')
-    data = [{ 'pk': w.pk, 'location': w.location, 'text': w.text,
-             'parti_emoji': w.participant.emoji, 'parti_code': ord(w.participant.emoji)}
-            for w in texts	]
+def godot_get_texts(request, game, prompt):
+    # TODO: perhaps add: request.GET["afterpk"]   # to get only latest texts
+    # TODO: perhaps add the prompt as pk0
+    if prompt == "99999":
+        # test data!
+        data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(10)]
+    elif prompt != "0":
+        texts = Text.objects.filter(game=game, prompt__pk=prompt).order_by('pk')
+        data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
+                for w in texts]
+    else:
+        texts = Text.objects.filter(game=game, prompt__isnull=True).order_by('pk')
+        data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
+                for w in texts]
     return JsonResponse(data, safe=False)
 
 
