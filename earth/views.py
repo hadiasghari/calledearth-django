@@ -92,7 +92,7 @@ def godot_get_texts(request, game, prompt):
     # TODO: perhaps add the prompt as pk0
     if prompt == "99999":
         # test data!
-        data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(10)]
+        data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(15)]
     elif prompt != "0":
         texts = Text.objects.filter(game=game, prompt__pk=prompt).order_by('pk')
         data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
