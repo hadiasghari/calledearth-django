@@ -33,7 +33,7 @@ class Prompt(models.Model):
 	# location & fill correctly are view related and should be in godot not in django/db
 
 	def __str__(self):
-		return f"[{self.level}.{self.pk}] {self.provocation[:30]}"
+		return f"{self.pk} | {self.provocation[:30]}"
 
 
 class Text(models.Model):

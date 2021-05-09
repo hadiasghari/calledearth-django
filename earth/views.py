@@ -43,17 +43,19 @@ def web_home(request):
             text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=f_t)
             text.save()
             # continue in this state until active_prompt is reset by GODOT engine
-            return HttpResponseRedirect(reverse('earth_webhome')) 
+            return HttpResponseRedirect(reverse('earth_webhome'))
+
+    # for 6 & 7 load last thing participant said
+    texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
+    last = texts[0].text if texts else None
 
     # 6. no active-prompt?  wait for one in this stage of game-play
     if not game.active_prompt:
-        texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
-        last = texts[0].text if texts else None
         return render(request, 'earth.html', {'status': 'waitprompt', 'emoji': parti.emoji,
                                               'lastsaid': last})
     # 7. otherwise send a prompt form
     return render(request, 'earth.html', {'status': 'prompt', 'emoji': parti.emoji,
-                                          'prompt': game.active_prompt})
+                                          'prompt': game.active_prompt, 'lastsaid': last})
 
 
 def build_emoji_list():

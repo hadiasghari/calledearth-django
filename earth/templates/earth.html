@@ -60,7 +60,7 @@
 		{% if status == "waitstart" %}
       <div  class="w3-card-4 w3-red center">
       	<p>WAITING FOR A NEW GAME TO START....</p>
-      	<script>window.setInterval('window.location.reload()', 10000);</script>
+      	<script>window.setInterval('window.location.reload()', 5000);</script>
 			</div>
     {% elif status == "pickemoji" %}
       <div  class="w3-card-4 w3-yellow center">
@@ -74,9 +74,8 @@
 			<div  class="w3-card-4 w3-gray center">
 				<p>Hey {{ emoji }},
 					we are waiting for the Body to find the next story fragment...</p>
-					{% if lastsaid %}
-					<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
-				<script>window.setInterval('window.location.reload()', 5000);</script>
+					{% if lastsaid %}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
+				<script>window.setInterval('window.location.reload()', 3000);</script>
 			</div>
 		{% elif status == "prompt" %}
 			<div  class="w3-card-4 w3-green center">
@@ -84,14 +83,36 @@
 				<p>{{ prompt.provocation }}</p>
 				<form>
 					{% comment csrf_token %}{% endcomment %}
-					{{ emoji }} <!-- input type="text" id="f_text" name="f_text"-->
-					<textarea id="f_text" name="f_text" max_length=140></textarea>
-					<!-- TODO: show characters remaining to 140 -->
-					<!-- TODO: refresh if nothing typed yet--> 
+					{{ emoji }}
+					<textarea id="f_text" name="f_text" maxlength=140 onkeyup="count_chars()"></textarea>
 					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
-					<input value="→" type="submit">
+					<input value="→" type="submit"> <!-- todo: why not tied to enter key? -->
 				</form>
-				<script>document.getElementById('f_text').focus();</script>
+				<span style="font-size:xx-small" id="charsleft"></span>
+				{% if lastsaid %}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
+				<script>
+				document.getElementById('f_text').focus();
+				window.setInterval('try_refresh()', 6000);
+
+				function count_chars() {
+					// show characters remaining to 140
+					var ta = document.getElementById('f_text');
+					var nl = 140 - ta.value.length;
+					var scl = document.getElementById('charsleft');
+					scl.textContent = "(" + nl + " characters left)";
+				}
+
+				function try_refresh() {
+					var ta = document.getElementById('f_text');
+					if (ta.value == "") {
+						window.location.reload();
+					}
+					else {
+						window.setInterval('try_refresh()', 6000);
+					}
+
+				}
+				</script>
 			</div>
 		{% else %}
 			<div  class="w3-card-4 w3-red center">
