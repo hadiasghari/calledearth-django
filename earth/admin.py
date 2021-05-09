@@ -44,7 +44,7 @@ class ParticipantAdmin(admin.ModelAdmin):
 
 
 class PromptAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'level', 'provocation', 'active', 'responses']
+    list_display = ['pk', 'provocation', 'active', 'responses']
     ordering = ['-pk', ]
 
     def responses(self, obj):

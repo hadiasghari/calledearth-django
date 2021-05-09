@@ -42,9 +42,8 @@ def web_home(request):
         if f_t:
             text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=f_t)
             text.save()
-            game.active_prompt = None
-            game.save()
-            return HttpResponseRedirect(reverse('earth_webhome'))  # is this correct? no form?
+            # continue in this state until active_prompt is reset by GODOT engine
+            return HttpResponseRedirect(reverse('earth_webhome')) 
 
     # 6. no active-prompt?  wait for one in this stage of game-play
     if not game.active_prompt:
@@ -60,12 +59,16 @@ def web_home(request):
 def build_emoji_list():
     emojis = []
     # see https://www.w3schools.com/charsets/ref_emoji.asp
+    # note, not every character exists, also on the GODOT side, so these ranges need to be tested
+    # (also could offset with a random 1-5 to add variety but don't re missing ones)
     for i in range(128640, 128700, 5):
-        emojis.append(chr(i))  # could offset with a random 1-5 to add variety
-    for i in range(129296, 129510, 5):
         emojis.append(chr(i))
-    emojis.remove('\U0001f979')  # remove non-existsant emoji
-    emojis.remove('\U0001f9ab')
+    for i in range(129296, 129390, 5):
+        emojis.append(chr(i))
+    for i in range(129411, 129436, 5):
+        emojis.append(chr(i))
+    for i in range(129491, 129510, 5):
+        emojis.append(chr(i))
     return emojis
 
 

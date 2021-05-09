@@ -28,7 +28,8 @@ class Prompt(models.Model):
 	provocation = models.CharField(max_length=500)  # The Prompt Question
 	# maybe in future: add a picture for the prompt
 	active = models.BooleanField(default=True)
-	level = models.CharField(max_length=10, null=True, blank=True)
+	#level = models.CharField(max_length=10, null=True, blank=True)
+	description = models.TextField(blank=True, null=True)
 	# location & fill correctly are view related and should be in godot not in django/db
 
 	def __str__(self):

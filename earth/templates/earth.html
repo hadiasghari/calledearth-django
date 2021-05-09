@@ -64,7 +64,7 @@
 			</div>
     {% elif status == "pickemoji" %}
       <div  class="w3-card-4 w3-yellow center">
-  		  Pick Your Emoji: <br>
+  		  You are a creator of a new world, but before you can create, you must learn to tell a new story. Pick Your Emoji: <br>
         {% for c in emojis %}
           <span style="font-size:larger"><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
           {% if forloop.counter|divisibleby:10 %}<br />{% endif %}
@@ -73,24 +73,25 @@
     {% elif status == "waitprompt" %}
 			<div  class="w3-card-4 w3-gray center">
 				<p>Hey {{ emoji }},
-					we are waiting for our Avatar to find the next story fragment...<br />(When the prompt appears, write the first words that come to you, and press ‘→’)</p>
+					we are waiting for the Body to find the next story fragment...</p>
 					{% if lastsaid %}
 					<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
 				<script>window.setInterval('window.location.reload()', 5000);</script>
 			</div>
 		{% elif status == "prompt" %}
 			<div  class="w3-card-4 w3-green center">
+				<!-- When instructed by the Gods, continue the story, and press ‘→’ -->
 				<p>{{ prompt.provocation }}</p>
 				<form>
 					{% comment csrf_token %}{% endcomment %}
 					{{ emoji }} <!-- input type="text" id="f_text" name="f_text"-->
-					<textarea id="f_text" name="f_text" max_length=200></textarea>
-					<!-- TODO: Set max characters -->
+					<textarea id="f_text" name="f_text" max_length=140></textarea>
+					<!-- TODO: show characters remaining to 140 -->
+					<!-- TODO: refresh if nothing typed yet--> 
 					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit">
 				</form>
 				<script>document.getElementById('f_text').focus();</script>
-				<!-- TODO: limit response chars & probably set a 1 minute timeout ... -->
 			</div>
 		{% else %}
 			<div  class="w3-card-4 w3-red center">
