@@ -16,10 +16,16 @@ class TextAdmin(admin.ModelAdmin):
         return obj.prompt if obj else ""
 
 
+def deactivate_game(modeladmin, request, queryset):
+    # TODO: FIX THIS 
+    # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/actions/
+    queryset.update(active_prompt=False)
+deactivate_game.short_description='Deactive selected games'
 
 class GamePlayAdmin(admin.ModelAdmin):
     list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'texts', 'participants']
     ordering = ['-pk', ]
+    actions = [deactivate_game]
 
     def is_active(self, obj):
         last_hour = timezone.now() - timedelta(hours=1)
@@ -32,6 +38,9 @@ class GamePlayAdmin(admin.ModelAdmin):
 
     def participants(self, obj):
         return obj.participant_set.count()
+
+
+
 
 
 class ParticipantAdmin(admin.ModelAdmin):

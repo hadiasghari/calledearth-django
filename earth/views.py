@@ -93,11 +93,21 @@ def godot_new_game(request):
 
 
 def godot_get_texts(request, game, prompt):
-    # TODO: perhaps add: request.GET["afterpk"]   # to get only latest texts
-    # TODO: perhaps add the prompt as pk0
+    # TODO: add jessica test text
     if prompt == "99999":
         # test data!
-        data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(15)]
+        test_strings = ["There were many words for her.",
+		      "Zoinks",		"Crikey", "None of them were more than sound.",
+		      "Oh my God",		"WTF",
+		      "By coincidence, or by choice, or by miraculous design, " \
+		            + "she settled into such a particular orbit around the sun that after the moon had been knocked from her belly " \
+		                  + "and pulled the water into sapphire blue oceans " \
+		                        + "the fire and brimstone had simmered, and the land had stopped buckling and heaving with such relentless vigor, " \
+		                              + "she whispered a secret code amongst the atoms, and life was born.",
+		      "She rocked her new creation and spun and danced around the bright sun as her children multiplied in number, wisdom, and beauty." ,
+		       "The End!"]
+        #data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(15)]
+        data = [{ 'pk': i, 'text': s, 'parti_code': 10067} for i,s in enumerate(test_strings)]
     elif prompt != "0":
         texts = Text.objects.filter(game=game, prompt__pk=prompt).order_by('pk')
         data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
