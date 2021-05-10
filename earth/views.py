@@ -40,8 +40,10 @@ def web_home(request):
         f_t = request.GET['f_text']
         f_p = Prompt.objects.get(pk=request.GET['f_pk'])
         if f_t:
-            text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=f_t)
-            text.save()
+            texts_tosave = maybe_expand_ftext(f_t)
+            for t in texts_tosave:
+                text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=t)
+                text.save()
             # continue in this state until active_prompt is reset by GODOT engine
             return HttpResponseRedirect(reverse('earth_webhome'))
 
@@ -57,6 +59,32 @@ def web_home(request):
     return render(request, 'earth.html', {'status': 'prompt', 'emoji': parti.emoji,
                                           'prompt': game.active_prompt, 'lastsaid': last})
 
+
+def maybe_expand_ftext(ftext):
+    # if there is a hidden command in the entered text prompt, expand it with test data....
+    if not ftext.startswith("!@#"):
+        return [ftext]
+    try:
+        n = int(ftext.replace("!@#", ""))
+    except:
+        return [ftext]
+
+    # return test data!
+    test_strings = ["There were many words for her.",
+	      "Zoinks",		"Crikey", "None of them were more than sound.",
+	      "By coincidence, or by choice, or by miraculous design, " \
+	            + "she settled into such a particular orbit around the sun that after the moon had been knocked from her belly " \
+	                  + "and pulled the water into sapphire blue oceans " \
+	                        + "the fire and brimstone had simmered, and the land had stopped buckling and heaving with such relentless vigor, " \
+	                              + "she whispered a secret code amongst the atoms, and life was born.",
+	      "She rocked her new creation and spun and danced around the bright sun as her children multiplied in number, wisdom, and beauty." ,
+          "Oh my God",		"WTF",
+	       "The End!"]
+    lt = []
+    for i in range(n):
+        t = test_strings[i%len(test_strings)]
+        lt.append(t[:140])  # add max 140 chars
+    return lt
 
 def build_emoji_list():
     emojis = []
@@ -93,22 +121,7 @@ def godot_new_game(request):
 
 
 def godot_get_texts(request, game, prompt):
-    # TODO: add jessica test text
-    if prompt == "99999":
-        # test data!
-        test_strings = ["There were many words for her.",
-		      "Zoinks",		"Crikey", "None of them were more than sound.",
-		      "Oh my God",		"WTF",
-		      "By coincidence, or by choice, or by miraculous design, " \
-		            + "she settled into such a particular orbit around the sun that after the moon had been knocked from her belly " \
-		                  + "and pulled the water into sapphire blue oceans " \
-		                        + "the fire and brimstone had simmered, and the land had stopped buckling and heaving with such relentless vigor, " \
-		                              + "she whispered a secret code amongst the atoms, and life was born.",
-		      "She rocked her new creation and spun and danced around the bright sun as her children multiplied in number, wisdom, and beauty." ,
-		       "The End!"]
-        #data = [{ 'pk': i, 'text': f'message {i}', 'parti_code': 10067} for i in range(15)]
-        data = [{ 'pk': i, 'text': s, 'parti_code': 10067} for i,s in enumerate(test_strings)]
-    elif prompt != "0":
+    if prompt != "0":
         texts = Text.objects.filter(game=game, prompt__pk=prompt).order_by('pk')
         data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
                 for w in texts]
@@ -126,13 +139,22 @@ def godot_get_stats(request, game):
     return JsonResponse(data)
 
 
-#for POST: @csrf_exempt
 def godot_set_prompt(request, game, prompt):
+    # set activeprompt and return its text
     go = GamePlay.objects.get(pk=game)
     po, cr = Prompt.objects.get_or_create(pk=prompt)
     if cr:
-        po.provocation = "Just make stuff up..."
+        po.provocation = "!UNKNOWN PROMPT!"
         po.save()
     go.active_prompt = po
     go.save()
     return JsonResponse(po.provocation, safe=False)
+
+
+def godot_save_game(request, game, loc):
+    # reset activeprompt and save location
+    go = GamePlay.objects.get(pk=game)
+    go.active_prompt = None
+    go.last_save = loc
+    go.save()
+    return JsonResponse(True, safe=False)

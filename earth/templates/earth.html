@@ -64,7 +64,8 @@
 			</div>
     {% elif status == "pickemoji" %}
       <div  class="w3-card-4 w3-yellow center">
-  		  You are a creator of a new world, but before you can create, you must learn to tell a new story. Pick Your Emoji: <br>
+  		  You are a creator of a new world, but before you can create, you must learn to tell a <!--new--> story.
+				Pick Your Emoji: <br>
         {% for c in emojis %}
           <span style="font-size:larger"><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
           {% if forloop.counter|divisibleby:10 %}<br />{% endif %}

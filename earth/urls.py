@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^gogettexts/(?P<game>\d+)/(?P<prompt>\d+)$', views.godot_get_texts),
     url(r'^gogetstats/(?P<game>\d+)$', views.godot_get_stats),
     url(r'^gosetprompt/(?P<game>\d+)/(?P<prompt>\d+)$', views.godot_set_prompt),
+    url(r'^gosavegame/(?P<game>\d+)/(?P<loc>.+)$', views.godot_save_game),    
 ]

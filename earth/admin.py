@@ -17,13 +17,13 @@ class TextAdmin(admin.ModelAdmin):
 
 
 def deactivate_game(modeladmin, request, queryset):
-    # TODO: FIX THIS 
+    # TODO: FIX THIS
     # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/actions/
     queryset.update(active_prompt=False)
 deactivate_game.short_description='Deactive selected games'
 
 class GamePlayAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'texts', 'participants']
+    list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'last_save', 'texts', 'participants']
     ordering = ['-pk', ]
     actions = [deactivate_game]
 

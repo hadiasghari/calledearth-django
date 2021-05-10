@@ -7,7 +7,7 @@ class GamePlay(models.Model):
 	active = models.BooleanField(default=True)  # set to False when quitting if we can
 	game_ver = models.IntegerField(default=1)  # for future game versions
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
-	last_location = models.CharField(max_length=50, null=True, blank=True)  # location of active prompt/avatar
+	last_save = models.CharField(max_length=50, null=True, blank=True)  # understood by godot
 	description = models.TextField(blank=True, null=True)  # for ourselves to recall this game
 
 	def __str__(self):
