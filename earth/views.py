@@ -129,8 +129,7 @@ def godot_get_stats(request, game):
 #for POST: @csrf_exempt
 def godot_set_prompt(request, game, prompt):
     go = GamePlay.objects.get(pk=game)
-    po = Prompt.objects.get(pk=prompt)  # request.POST['prompt'])
+    po = Prompt.objects.get(pk=prompt)
     go.active_prompt = po
-    # LATER: go.last_location = request.POST['location']
     go.save()
-    return JsonResponse(True, safe=False)
+    return JsonResponse(po.provocation, safe=False)

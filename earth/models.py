@@ -8,7 +8,6 @@ class GamePlay(models.Model):
 	game_ver = models.IntegerField(default=1)  # for future game versions
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
 	last_location = models.CharField(max_length=50, null=True, blank=True)  # location of active prompt/avatar
-	# might also need last avatar level as the game proceeds
 	description = models.TextField(blank=True, null=True)  # for ourselves to recall this game
 
 	def __str__(self):
@@ -28,9 +27,8 @@ class Prompt(models.Model):
 	provocation = models.CharField(max_length=500)  # The Prompt Question
 	# maybe in future: add a picture for the prompt
 	active = models.BooleanField(default=True)
-	#level = models.CharField(max_length=10, null=True, blank=True)
 	description = models.TextField(blank=True, null=True)
-	# location & fill correctly are view related and should be in godot not in django/db
+	# location & fill correctly are view related and set in godot (not in django/db)
 
 	def __str__(self):
 		return f"{self.pk} | {self.provocation[:30]}"
@@ -41,7 +39,6 @@ class Text(models.Model):
 	 participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
 	 prompt = models.ForeignKey(Prompt, on_delete=models.PROTECT, null=True, blank=True)  # if response to prompt
 	 created_at = models.DateTimeField(default=timezone.now)
-	 #level = models.IntegerField(default=1)  # for when more levels
-	 #location = models.FloatField(null=True, blank=True)  # where the words have been entered
+	 # level/location now tied to prompt key
 	 text = models.TextField()  # The text (words) enetered by the participant
 	 color = models.IntegerField(blank=True, null=True)
