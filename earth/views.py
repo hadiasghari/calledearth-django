@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import Http404
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -62,10 +63,10 @@ def web_home(request):
 
 def maybe_expand_ftext(ftext):
     # if there is a hidden command in the entered text prompt, expand it with test data....
-    if not ftext.startswith("!@#"):
+    if not ftext.startswith("!@#") and not ftext.startswith("QWE"):
         return [ftext]
     try:
-        n = int(ftext.replace("!@#", ""))
+        n = int(ftext.replace("!@#", "").replace("QWE", ""))
     except:
         return [ftext]
 
@@ -134,8 +135,13 @@ def godot_get_texts(request, game, prompt):
 
 def godot_get_stats(request, game):
     # For HUD, return list of participants. maybe some other stuff too.
-    partis = Participant.objects.filter(game=game)
-    data = {'participants': [ord(p.emoji) for p in partis]}
+    try:
+        go = GamePlay.objects.get(pk=game)  # isn't there a prettier way to do this?
+    except GamePlay.DoesNotExist:
+        raise Http404(f"No game {game}")
+    partis = Participant.objects.filter(game=go)
+    data = {'participants': [ord(p.emoji) for p in partis],
+            'lastsave': go.last_save or ""}
     return JsonResponse(data)
 
 
