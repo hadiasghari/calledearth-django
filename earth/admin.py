@@ -40,9 +40,6 @@ class GamePlayAdmin(admin.ModelAdmin):
         return obj.participant_set.count()
 
 
-
-
-
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ['pk', 'game', 'emoji', 'joined_at', 'geo', 'texts']
     list_filter = ['game']
@@ -58,7 +55,6 @@ class PromptAdmin(admin.ModelAdmin):
 
     def responses(self, obj):
         return obj.text_set.count()
-
 
 
 admin.site.register(GamePlay, GamePlayAdmin)

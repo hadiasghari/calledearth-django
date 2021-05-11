@@ -43,6 +43,7 @@ def web_home(request):
         if f_t:
             texts_tosave = maybe_expand_ftext(f_t)
             for t in texts_tosave:
+                # maybe cheats should be set with the system user?
                 text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=t)
                 text.save()
             # continue in this state until active_prompt is reset by GODOT engine
@@ -54,7 +55,11 @@ def web_home(request):
 
     # 6. no active-prompt?  wait for one in this stage of game-play
     if not game.active_prompt:
-        return render(request, 'earth.html', {'status': 'waitprompt', 'emoji': parti.emoji,
+        if game.last_save and game.last_save.lower().startswith('dance'):
+            # Note/maybe make dancing own thing?
+            return render(request, 'earth.html', {'status': 'dance', 'emoji': parti.emoji,})
+        else:
+            return render(request, 'earth.html', {'status': 'waitprompt', 'emoji': parti.emoji,
                                               'lastsaid': last})
     # 7. otherwise send a prompt form
     return render(request, 'earth.html', {'status': 'prompt', 'emoji': parti.emoji,

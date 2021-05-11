@@ -78,7 +78,13 @@
 					{% if lastsaid %}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
 				<script>window.setInterval('window.location.reload()', 3000);</script>
 			</div>
-		{% elif status == "prompt" %}
+			{% elif status == "dance" %}
+				<div  class="w3-card-4 w3-green center">
+					<p>VICTORY! Let's Dance!</p>
+				</div>
+				<script>window.setInterval('window.location.reload()', 3000);</script>
+			 {% endif %}
+			{% elif status == "prompt" %}
 			<div  class="w3-card-4 w3-green center">
 				<!-- When instructed by the Gods, continue the story, and press ‘→’ -->
 				<p>{{ prompt.provocation }}</p>
