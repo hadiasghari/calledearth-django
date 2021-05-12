@@ -7,39 +7,9 @@
 		<!-- link rel="icon" type="image/png" href="django static load" sizes="48x48"-->
 		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 		<style>
-		/*@keyframes fadein {
-		    from { opacity: 0; }
-		    to   { opacity: 1; }
-		}
-		body {
-			background-color: black;
-			color: white;
-			animation: fadein 10s;
-			font-family: monospace;
-			font-size: 12px;
-		}*/
-	/*	div.outest {
-			position: relative;
-			width: 100%;
-			margin: 0;
-		}
-		div.outer {
-			position: absolute;
-			top: 6%;
-			left: 20%;
-			vertical-align: middle;
-		}*/
 		a:hover {
 			   border: 1px dotted red;
 		}
-		/*div.form {
-			border: 1px solid pink;
-			padding: 5px;
-			color: white;
-		}
-		div.form a {
-			text-decoration-style: dotted;
-		}*/
 		.center {
 	  margin: auto;
 	  width: 50%;
@@ -56,7 +26,6 @@
 	  </style>
 </head>
 <body>
-		<!--TODO place these mid screen ..-->
 		{% if status == "waitstart" %}
       <div  class="w3-card-4 w3-red center">
       	<p>WAITING FOR A NEW GAME TO START....</p>
@@ -65,7 +34,7 @@
     {% elif status == "pickemoji" %}
       <div  class="w3-card-4 w3-yellow center">
   		  You are a creator of a new world, but before you can create, you must learn to tell a <!--new--> story.
-				Pick Your Emoji: <br>
+				Pick your emoji: <br>
         {% for c in emojis %}
           <span style="font-size:larger"><a href="{% url 'earth_webhome' %}?e={{ c }}">{{ c }}</a> </span>
           {% if forloop.counter|divisibleby:10 %}<br />{% endif %}
@@ -73,23 +42,36 @@
       </div>
     {% elif status == "waitprompt" %}
 			<div  class="w3-card-4 w3-gray center">
-				<p>Hey {{ emoji }},
+				<p>Hey {{ user.emoji }},
 					we are waiting for the Body to find the next story fragment...</p>
-					{% if lastsaid %}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
-				<script>window.setInterval('window.location.reload()', 3000);</script>
+					Send energy: <img src="{% static 'test-heart.png' %}" onclick="send_energy('h')">
+					{% comment %}{if lastsaid}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {endif}{%endcomment%}
+				<script>
+				window.setInterval('window.location.reload()', 5000);
+				function send_energy(s) {
+					var ajax = new XMLHttpRequest();
+					var url = '{% url "earth_sendenergy" user.pk %}?energy=' + s;
+					ajax.open('GET', url, true);
+					/*ajax.onload = function() {...see dreamcity...}*/
+					ajax.send();
+					/* TODO: add some kind of dramatic effect here to show we sent it! */
+				}
+			</script>
 			</div>
 			{% elif status == "dance" %}
 				<div  class="w3-card-4 w3-green center">
-					<p>🎉🎉🎉🎉🎉 VICTORY! 🎉🎉🎉🎉🎉</p>
+					<p>🎉🎉🎉🎉 VICTORY! 🎉🎉🎉🎉</p>
+					<!-- Send energy: <img src="{% static 'test-heart.png' %}" onclick="alert('Heart')" -->
 				</div>
-				<script>window.setInterval('window.location.reload()', 3000);</script>
+				<script>
+				window.setInterval('window.location.reload()', 5000);
+			</script>
 			{% elif status == "prompt" %}
 			<div  class="w3-card-4 w3-green center">
-				<!-- When instructed by the Gods, continue the story, and press ‘→’ -->
 				<p>{{ prompt.provocation }}</p>
 				<form>
 					{% comment csrf_token %}{% endcomment %}
-					{{ emoji }}
+					{{ user.emoji }}
 					<textarea id="f_text" name="f_text" maxlength=140 onkeyup="count_chars()"></textarea>
 					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit"> <!-- todo: why not tied to enter key? -->

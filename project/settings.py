@@ -128,7 +128,7 @@ STATIC_URL = '/static/'
 # HA Static files (CSS, JavaScript, Images)
 # set where to store ()& collect) them; served with whitenoise.
 #PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-#STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+#STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, '../staticfiles/'))
 # Extra places for collectstatic to find static files.
 #STATICFILES_DIRS = (
 #    os.path.join(PROJECT_ROOT, '../static-assets'),

@@ -19,6 +19,7 @@ class Participant(models.Model):
 	joined_at = models.DateTimeField(default=timezone.now)
 	emoji = models.CharField(max_length=10, default="👓")  # similar to nickname, for game users
 	typing = models.NullBooleanField()   # for future to show is typing on screen
+	queued_energy = models.CharField(max_length=50, default="", blank=True)
 	geo = models.CharField(max_length=50, blank=True, null=True)  # geolocation
 
 
@@ -31,7 +32,7 @@ class Prompt(models.Model):
 	# location & fill correctly are view related and set in godot (not in django/db)
 
 	def __str__(self):
-		return f"{self.pk} | {self.provocation[:30]}"
+		return f"{self.pk} ({self.provocation[:10]}...)"
 
 
 class Text(models.Model):

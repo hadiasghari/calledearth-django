@@ -20,7 +20,7 @@ from earth import views as ev
 
 
 urlpatterns = [
-    path('', ev.web_home, name='earth_webhome'),
+    path('', ev.web_home, name='earth_webhome'),  # same as /earth/
     path('earth/', include('earth.urls')),
     path('admin/', admin.site.urls),
 ]

@@ -9,17 +9,18 @@ from .models import *
 
 
 def web_home(request):
-    # 1. find an active game. if not, return sth like wait
+    # 1A. find an active game. if not, return sth like wait
     game = find_active_game()
     if not game:
         return render(request, 'earth.html', {'status': 'waitstart'})
 
-    # 2. if new session and no emoji selected, return emoji list
+    # 1B. if new session and no emoji selected, return emoji list
     if 'participant' not in request.session and 'e' not in request.GET:
         emojis = build_emoji_list()
+            # TODO/options: (i) we could exclude already picked emojis (ii) ask for initials too
         return render(request, 'earth.html', {'status': 'pickemoji', 'emojis': emojis})
 
-    # 3. if user has picked a new emoji (in URL), save participant in session, reload
+    # 1C. if user has picked a new emoji (in URL), save participant in session, reload
     if 'e' in request.GET:
         emoji = request.GET['e']
         parti = Participant.objects.create(game=game, emoji=emoji)
@@ -27,7 +28,7 @@ def web_home(request):
         request.session['participant'] = parti.pk  # cache for next time
         return HttpResponseRedirect(reverse('earth_webhome'))
 
-    # 4. load participant from session
+    # 2. alright, load participant from session, before continuing...
     if 'participant' in request.session:
         try:
             parti = Participant.objects.get(pk=request.session['participant'], game=game)
@@ -36,7 +37,7 @@ def web_home(request):
             del request.session['participant']
             return HttpResponseRedirect(reverse('earth_webhome'))
 
-    # 5. did we get a form response, then save it and reload
+    # 3A. did we get a form response, then save it and reload
     if 'f_text' in request.GET:
         f_t = request.GET['f_text']
         f_p = Prompt.objects.get(pk=request.GET['f_pk'])
@@ -49,20 +50,18 @@ def web_home(request):
             # continue in this state until active_prompt is reset by GODOT engine
             return HttpResponseRedirect(reverse('earth_webhome'))
 
-    # for 6 & 7 load last thing participant said
-    texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
-    last = texts[0].text if texts else None
-
-    # 6. no active-prompt?  wait for one in this stage of game-play
+    # 4. no active-prompt?  wait for one in this stage of game-play
     if not game.active_prompt:
         if game.last_save and game.last_save.lower().startswith('dance'):
             # Note/maybe make dancing own thing?
-            return render(request, 'earth.html', {'status': 'dance', 'emoji': parti.emoji,})
+            return render(request, 'earth.html', {'status': 'dance', 'user': parti,})
         else:
-            return render(request, 'earth.html', {'status': 'waitprompt', 'emoji': parti.emoji,
-                                              'lastsaid': last})
-    # 7. otherwise send a prompt form
-    return render(request, 'earth.html', {'status': 'prompt', 'emoji': parti.emoji,
+            return render(request, 'earth.html', {'status': 'waitprompt', 'user': parti})
+
+    # 3B. otherwise send a prompt form (includes last thing user said)
+    texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
+    last = texts[0].text if texts else None
+    return render(request, 'earth.html', {'status': 'prompt', 'user': parti,
                                           'prompt': game.active_prompt, 'lastsaid': last})
 
 
@@ -92,6 +91,7 @@ def maybe_expand_ftext(ftext):
         lt.append(t[:140])  # add max 140 chars
     return lt
 
+
 def build_emoji_list():
     emojis = []
     # see https://www.w3schools.com/charsets/ref_emoji.asp
@@ -112,6 +112,16 @@ def find_active_game():
     last_hour = timezone.now() - timedelta(hours=1)
     games = GamePlay.objects.filter(active=1, game_ver=1, start_time__gt=last_hour).order_by('-pk')
     return games[0] if games else None
+
+
+def user_send_energy(request, partik):
+    # this is an ajax call
+    # note: 1. we are assuming the participant also identifies the game
+    #       2. we could store these in a queue, or in the participant object for now
+    energy = request.GET['energy'][0]  # one letter energy type
+    parti = Participant.objects.get(pk=partik)
+    parti.queued_energy += energy
+    parti.save()
 
 
 def godot_new_game(request):
@@ -144,9 +154,15 @@ def godot_get_stats(request, game):
         go = GamePlay.objects.get(pk=game)  # isn't there a prettier way to do this?
     except GamePlay.DoesNotExist:
         raise Http404(f"No game {game}")
-    partis = Participant.objects.filter(game=go)
-    data = {'participants': [ord(p.emoji) for p in partis],
-            'lastsave': go.last_save or ""}
+
+    emojies, energies = [], []
+    for p in Participant.objects.filter(game=go):
+        emojies.append(ord(p.emoji))
+        if p.queued_energy:
+            energies.append((ord(p.emoji), p.queued_energy))
+            p.queued_energy = ""
+            p.save()  # I wonder if this might conflict with a write earlier on. won't be disasterous.
+    data = {'participants': emojies, 'energies': energies, 'lastsave': go.last_save or ""}
     return JsonResponse(data)
 
 

@@ -41,12 +41,18 @@ class GamePlayAdmin(admin.ModelAdmin):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'emoji', 'joined_at', 'geo', 'texts']
+    list_display = ['pk', 'game', 'emoji', 'queued_energy', 'texts', 'joined_min']
     list_filter = ['game']
     ordering = ['-pk', ]
 
     def texts(self, obj):
         return obj.text_set.count()
+
+    def joined_min(self, obj):
+        try:
+            return (obj.joined_at - obj.game.start_time).seconds // 60
+        except:
+            return ""
 
 
 class PromptAdmin(admin.ModelAdmin):
