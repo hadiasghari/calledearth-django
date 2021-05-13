@@ -12,7 +12,7 @@ def web_home(request):
     # 1A. find an active game. if not, return sth like wait
     game = find_active_game()
     if not game:
-        return render(request, 'earth.html', {'status': 'waitstart'})
+        return render(request, 'earth.html', {'status': 'waitstart', 'gamek': 0})
 
     # 1B. if new session and no emoji selected, return emoji list
     if 'participant' not in request.session and 'e' not in request.GET:
