@@ -41,7 +41,7 @@ class GamePlayAdmin(admin.ModelAdmin):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'emoji', 'queued_energy', 'texts', 'joined_min']
+    list_display = ['pk', 'game', 'emoji', 'energy', 'texts', 'joined_min']
     list_filter = ['game']
     ordering = ['-pk', ]
 
@@ -54,6 +54,9 @@ class ParticipantAdmin(admin.ModelAdmin):
         except:
             return ""
 
+    def energy(self, obj):
+        return ""   # TODO: return from QUEUE!
+
 
 class PromptAdmin(admin.ModelAdmin):
     list_display = ['pk', 'provocation', 'active', 'responses']
@@ -63,7 +66,14 @@ class PromptAdmin(admin.ModelAdmin):
         return obj.text_set.count()
 
 
+class EventQueueAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'game', 'event_time', 'event', 'info']
+    ordering = ['-pk', ]
+
+
+
 admin.site.register(GamePlay, GamePlayAdmin)
+admin.site.register(Prompt, PromptAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Text, TextAdmin)
-admin.site.register(Prompt, PromptAdmin)
+admin.site.register(EventQueue, EventQueueAdmin)

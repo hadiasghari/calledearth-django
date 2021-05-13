@@ -19,7 +19,7 @@ class Participant(models.Model):
 	joined_at = models.DateTimeField(default=timezone.now)
 	emoji = models.CharField(max_length=10, default="👓")  # similar to nickname, for game users
 	typing = models.NullBooleanField()   # for future to show is typing on screen
-	queued_energy = models.CharField(max_length=50, default="", blank=True)
+	# queued_energy = models.CharField(max_length=50, default="", blank=True)
 	geo = models.CharField(max_length=50, blank=True, null=True)  # geolocation
 
 
@@ -33,6 +33,14 @@ class Prompt(models.Model):
 
 	def __str__(self):
 		return f"{self.pk} ({self.provocation[:10]}...)"
+
+
+class EventQueue(models.Model):
+	# pk
+	game = models.ForeignKey(GamePlay, on_delete=models.PROTECT)
+	event_time = models.DateTimeField(default=timezone.now)
+	event = models.CharField(max_length=20, default="", blank=True)
+	info = models.CharField(max_length=20, default="", blank=True) # e.g. participant
 
 
 class Text(models.Model):

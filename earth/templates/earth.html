@@ -6,30 +6,50 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<!-- link rel="icon" type="image/png" href="django static load" sizes="48x48"-->
 		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<!-- snippet to embedd google New Tegomin font -->
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+		<!-- endsnippet -->
 		<style>
-		a:hover {
-			   border: 1px dotted red;
+		body {
+		    font-family: 'New Tegomin', serif;
+				background-image: url('{% static "stars.jpg" %}');
+				background-color: black;
+				color: white;
+				font-size: larger;
+		}
+		.external {
+			display: table;
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+		}
+		.middle {
+			display: table-cell;
+			vertical-align: middle;
 		}
 		.center {
 	  margin: auto;
 	  width: 50%;
-	  border: 3px solid green;
+	  border: 2px solid magenta;
 	  padding: 10px;
 		}
 		footer {
 			text-align: center;
-      font-size: xx-small;
+      font-size: x-small;
 		}
-		footer a {
-			text-decoration-style: dotted;
-		}
+
 	  </style>
 </head>
 <body>
+	<div class="external">
+		<div class="middle">
 		{% if status == "waitstart" %}
       <div  class="w3-card-4 w3-red center">
       	<p>WAITING FOR A NEW GAME TO START....</p>
-      	<script>window.setInterval('window.location.reload()', 5000);</script>
+      	<script>window.setInterval('window.location.reload()', 10000);</script>
 			</div>
     {% elif status == "pickemoji" %}
       <div  class="w3-card-4 w3-yellow center">
@@ -40,78 +60,94 @@
           {% if forloop.counter|divisibleby:10 %}<br />{% endif %}
         {% endfor %}
       </div>
-    {% elif status == "waitprompt" %}
-			<div  class="w3-card-4 w3-gray center">
+    	{% elif status == "waitprompt" %}
+			<div  class="w3-card-4 center">
 				<p>Hey {{ user.emoji }},
 					we are waiting for the Body to find the next story fragment...</p>
-					Send energy: <img src="{% static 'test-heart.png' %}" onclick="send_energy('h')">
-					{% comment %}{if lastsaid}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {endif}{%endcomment%}
-				<script>
-				window.setInterval('window.location.reload()', 5000);
-				function send_energy(s) {
-					var ajax = new XMLHttpRequest();
-					var url = '{% url "earth_sendenergy" user.pk %}?energy=' + s;
-					ajax.open('GET', url, true);
-					/*ajax.onload = function() {...see dreamcity...}*/
-					ajax.send();
-					/* TODO: add some kind of dramatic effect here to show we sent it! */
-				}
-			</script>
+					Send energy:
+					<img src="{% static 'love.png' %}" onclick="send_energy('l')" width=10% id="img_l">
+					<img src="{% static 'power.png' %}" onclick="send_energy('p')" width=10% id="img_p">
+					<img src="{% static 'funny.png' %}" onclick="send_energy('f')" width=10% id="img_f">
+					<img src="{% static 'sad.png' %}" onclick="send_energy('s')" width=10% id="img_s">
+					<img src="{% static 'mad.png' %}" onclick="send_energy('m')" width=10% id="img_m">
+					<script>window.setInterval('refresh_if_needed("0")', 5000);</script>
 			</div>
 			{% elif status == "dance" %}
-				<div  class="w3-card-4 w3-green center">
-					<p>🎉🎉🎉🎉 VICTORY! 🎉🎉🎉🎉</p>
-					<!-- Send energy: <img src="{% static 'test-heart.png' %}" onclick="alert('Heart')" -->
+				<div  class="w3-card-4 w3-cyan center">
+					<p>🎉 LET'S DANCE! 🎉</p>
+					Send energy:
+					<img src="{% static 'love.png' %}" onclick="send_energy('l')" width=10% id="img_l">
+					<img src="{% static 'power.png' %}" onclick="send_energy('p')" width=10% id="img_p">
+					<img src="{% static 'funny.png' %}" onclick="send_energy('f')" width=10% id="img_f">
+					<img src="{% static 'sad.png' %}" onclick="send_energy('s')" width=10% id="img_s">
+					<img src="{% static 'mad.png' %}" onclick="send_energy('m')" width=10% id="img_m">
 				</div>
-				<script>
-				window.setInterval('window.location.reload()', 5000);
-			</script>
+				<script>window.setInterval('refresh_if_needed("0")', 5000);</script>
 			{% elif status == "prompt" %}
-			<div  class="w3-card-4 w3-green center">
+			<div  class="w3-card-4 center">
 				<p>{{ prompt.provocation }}</p>
 				<form>
-					{% comment csrf_token %}{% endcomment %}
 					{{ user.emoji }}
 					<textarea id="f_text" name="f_text" maxlength=140 onkeyup="count_chars()"></textarea>
-					<input type="hidden" id="f_promptpk" name="f_pk" value="{{ prompt.pk }}">
+					<input type="hidden" id="f_promptk" name="f_pk" value="{{ prompt.pk }}">
 					<input value="→" type="submit"> <!-- todo: why not tied to enter key? -->
 				</form>
 				<span style="font-size:xx-small" id="charsleft"></span>
 				{% if lastsaid %}<p>(Last you said: <i>"{{ lastsaid }}"</i>)</p> {% endif %}
 				<script>
-				document.getElementById('f_text').focus();
-				window.setInterval('try_refresh()', 6000);
-
-				function count_chars() {
-					// show characters remaining to 140
-					var ta = document.getElementById('f_text');
-					var nl = 140 - ta.value.length;
-					var scl = document.getElementById('charsleft');
-					scl.textContent = "(" + nl + " characters left)";
-				}
-
-				function try_refresh() {
-					var ta = document.getElementById('f_text');
-					if (ta.value == "") {
-						window.location.reload();
+					document.getElementById('f_text').focus();
+					window.setInterval('try_refresh()', 5000);
+					function count_chars() {
+						// show characters remaining to 140 -- or defined value
+						var nl = 140 - document.getElementById('f_text').value.length;
+						var scl = document.getElementById('charsleft');
+						scl.textContent = "(" + nl + " characters left)";
 					}
-					else {
-						window.setInterval('try_refresh()', 6000);
+					function try_refresh() {
+						if (document.getElementById('f_text').value != "")
+							window.setInterval('try_refresh()', 5000);
+						else {
+							refresh_if_needed("1");
+						}
 					}
-
-				}
 				</script>
 			</div>
 		{% else %}
 			<div  class="w3-card-4 w3-red center">
-				<p>IMPOSSIBLE ERROR</p>
+				<p>INSANE ERROR</p>
 			</div>
 		{% endif %}
+
+		<script>
+		function refresh_if_needed(expecting_prompt) {
+			var ajax = new XMLHttpRequest();
+			ajax.open('GET', '{% url "earth_needrefresh" gamek %}?ep=' + expecting_prompt, true);
+			ajax.onload = function() {
+				if (this.status == 200 && this.response == "true") {
+						// alert("refreshing");
+						window.location.reload();
+				}
+			}
+			ajax.send();
+		}
+		async function send_energy(s) {
+			var ajax = new XMLHttpRequest();
+			var url = '{% url "earth_sendenergy" user.pk %}?energy=' + s;
+			ajax.open('GET', url, true);
+			ajax.send();
+			// some dramatic effect:
+			var img = document.getElementById('img_' + s);
+			var drama = "w3-animate-opacity"; // "w3-spin";
+			img.classList.add(drama);
+			await new Promise(r => setTimeout(r, 500));
+			img.classList.remove(drama);
+		}
+		</script>
 
 	<footer>
 		"We Called It Earth", by Jessica Renfro & Hadi Asghari
 	</footer>
-	 <script>
-	 </script>
+</div>
+</div>
 </body>
 </html>
