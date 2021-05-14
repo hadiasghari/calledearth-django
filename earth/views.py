@@ -5,6 +5,7 @@ from django.http import Http404
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
 from .models import *
 
 
@@ -78,8 +79,6 @@ def get_participant_or_httpresponse(game, request):
         return None, HttpResponseRedirect(reverse('earth_webhome'))
 
 
-
-
 def maybe_expand_ftext(ftext):
     # if there is a hidden command in the entered text prompt, expand it with test data....
     if not ftext.startswith("!@#") and not ftext.startswith("QWE"):
@@ -126,6 +125,7 @@ def build_emoji_list():
 def find_active_game():
     last_hour = timezone.now() - timedelta(hours=1)
     games = GamePlay.objects.filter(active=1, game_ver=1, start_time__gt=last_hour).order_by('-pk')
+    # can be memcached if necessary
     return games[0] if games else None
 
 
@@ -140,13 +140,10 @@ def get_client_ip(request):
 
 def user_send_energy(request, partik):
     # this is an ajax call to send energy to godot
-    # (note: participant also identifies the game)
-    # TODO: STORE THIS IN A MEMCACHE QUEUE AND ONLY COMMIT TO DB IN GETSTATS
-    parti = Participant.objects.get(pk=partik)
-    log = GameLog.objects.create(game=parti.game)
-    log.event = "e_" + request.GET['energy'][0]  # one letter energy type
-    log.info = "p_" + partik
-    log.save()
+    # we store it in a memache queue and only commit to DB in getstats for speed
+    ecache = cache.get(f"e_{partik}") or ""
+    ecache += request.GET['energy'][0]  # one letter energy type
+    cache.set(f"e_{partik}", ecache)
     return JsonResponse(True, safe=False)
 
 
@@ -165,12 +162,11 @@ def user_needs_refresh(request, gamek):
 
 
 def godot_new_game(request):
-    game = GamePlay.objects.create()  # game defaults are good
-    game.godot_ip = get_client_ip(request)
+    game = GamePlay.objects.create()  # most game defaults are good
+    game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
-    #print(game.godot_ip)
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
-    # delete all existing hello world messages from system!
+    # delete all existing system (hello world) messages from system!
     Text.objects.filter(participant=parti, prompt__isnull=True).delete()
     Text.objects.create(game=game, participant=parti, text="Hello World!")
     # let's also delete all empty participants & games, while at it, to clear admin UX
@@ -201,18 +197,19 @@ def godot_get_stats(request, gamek):
         raise Http404(f"No game {gamek}")
 
     emojies = []
+    energies = ""
     for p in Participant.objects.filter(game=go):
         emojies.append(ord(p.emoji))
+        # check all queued energ (powerups)
+        energy = cache.get(f"e_{p.pk}")
+        if energy:
+            log = GameLog.objects.create(game=go, event=f"energy_{p.pk}", info=energy)
+            energies += energy
+            cache.set(f"e_{p.pk}", "")
 
-    q_energy = ""
-    q_after = 0 if 'qa' not in request.GET else int(request.GET['qa'])
-    q_lastk = q_after
-    for ev in GameLog.objects.filter(game=go, pk__gt=q_after):
-        # TODO update this logic with MEMCACHE ETc
-        if ev.event.startswith("e_"):
-            q_energy += ev.event.replace("e_", "")
-        q_lastk = ev.pk if ev.pk > q_lastk else q_lastk
-    data = {'participants': emojies, 'q_energy': q_energy, 'q_lastk': q_lastk,
+    data = {'participants': emojies,
+            'q_energy': energies,  # lets rename on server
+            'q_lastk': 0,  # unnecessay
             'lastsave': "",}  # TODO: LAST SAVE IF NECESSARY (PERHAPS NOT)
     return JsonResponse(data)
 

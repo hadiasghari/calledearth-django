@@ -38,7 +38,7 @@ class GameLog(models.Model):
 	game = models.ForeignKey(GamePlay, on_delete=models.PROTECT)
 	time = models.DateTimeField(default=timezone.now)
 	event = models.CharField(max_length=20, default="", blank=True)
-	info = models.CharField(max_length=200, blank=True, null=True) # e.g. participant
+	info = models.CharField(max_length=200, blank=True, null=True) 
 
 
 class Text(models.Model):
