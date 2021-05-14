@@ -17,12 +17,11 @@ class TextAdmin(admin.ModelAdmin):
 
 
 def deactivate_game(modeladmin, request, queryset):
-    # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/actions/
     queryset.update(active=False)
 deactivate_game.short_description='Deactivate selected games'
 
 class GamePlayAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'last_save', 'texts', 'participants']
+    list_display = ['pk', 'start_time', 'is_active', 'active_prompt', 'texts', 'participants']
     ordering = ['-pk', ]
     actions = [deactivate_game]
 
@@ -31,6 +30,8 @@ class GamePlayAdmin(admin.ModelAdmin):
         b = obj.active and obj.start_time > last_hour
         return b
     is_active.boolean = True
+
+    # TODO: last_save can come from GameLog if desired
 
     def texts(self, obj):
         return obj.text_set.count()
@@ -54,7 +55,7 @@ class ParticipantAdmin(admin.ModelAdmin):
             return ""
 
     def energy(self, obj):
-        return ""   # TODO: return from QUEUE!
+        return ""   # TODO: return from GameLog if saved...!
 
 
 class PromptAdmin(admin.ModelAdmin):
@@ -65,14 +66,13 @@ class PromptAdmin(admin.ModelAdmin):
         return obj.text_set.count()
 
 
-class EventQueueAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'event_time', 'event', 'info']
-    ordering = ['-pk', ]
-
+class GameLogAdmin(admin.ModelAdmin):
+   list_display = ['pk', 'game', 'time', 'event', 'info']
+   ordering = ['-pk', ]
 
 
 admin.site.register(GamePlay, GamePlayAdmin)
 admin.site.register(Prompt, PromptAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Text, TextAdmin)
-admin.site.register(EventQueue, EventQueueAdmin)
+admin.site.register(GameLog, GameLogAdmin)

@@ -1,0 +1,29 @@
+body {
+    font-family: 'New Tegomin', serif;
+    background-image: url('{% static "stars.jpg" %}');
+    background-color: black;
+    color: white;
+    font-size: larger;
+}
+.external {
+  display: table;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+.middle {
+  display: table-cell;
+  vertical-align: middle;
+}
+.center {
+margin: auto;
+width: 50%;
+border: 2px solid magenta;
+padding: 10px;
+}
+footer {
+  text-align: center;
+  font-size: x-small;
+}

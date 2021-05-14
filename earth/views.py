@@ -9,38 +9,15 @@ from .models import *
 
 
 def web_home(request):
-    # 1A. find an active game. if not, return sth like wait
+    # 1. find an active game
     game = find_active_game()
     if not game:
-        return render(request, 'earth.html', {'status': 'waitstart', 'gamek': 0})
+        return render(request, 'earth_waitstart.html', {})
 
-    # 1B. if new session and no emoji selected, return emoji list
-    if 'participant' not in request.session and 'e' not in request.GET:
-        emojis = build_emoji_list()
-            # TODO/options: (i) we could exclude already picked emojis (ii) ask for initials too
-        return render(request, 'earth.html', {'status': 'pickemoji', 'emojis': emojis, 'gamek': game.pk})
-
-    # 1C. if user has picked a new emoji (in URL), save participant in session, reload
-    if 'e' in request.GET:
-        em = request.GET['e']
-        if Participant.objects.filter(game=game, emoji=em):
-            # emoji exists!
-            n = Participant.objects.filter(game=game, emoji=em).count()
-            em += str(n+1)
-        parti = Participant.objects.create(game=game, emoji=em)
-        parti.geo = get_user_ip(request)  # TODO: store geolocation of participant!
-        parti.save()
-        request.session['participant'] = parti.pk  # cache for next time
-        return HttpResponseRedirect(reverse('earth_webhome'))
-
-    # 2. alright, load participant from session, before continuing...
-    if 'participant' in request.session:
-        try:
-            parti = Participant.objects.get(pk=request.session['participant'], game=game)
-        except:
-            parti = None  # either participant doesn't exist or we are in a new game
-            del request.session['participant']
-            return HttpResponseRedirect(reverse('earth_webhome'))
+    # 2. get participant from session (or emoji form)
+    parti, response = get_participant_or_httpresponse(game, request)
+    if not parti:
+        return response
 
     # 3A. did we get a form response, then save it and reload
     if 'f_text' in request.GET:
@@ -60,19 +37,47 @@ def web_home(request):
     # TODO: give dance, etc, and yet to add credit screen, maybe this needs a nicer flowchart :)
     # TODO: REVIVAL SCREEN ALSO
     if not game.active_prompt:
-        if game.last_save and game.last_save.lower().startswith('dance'):
-            # Note/maybe make dancing own thing?
-            return render(request, 'earth.html', {'status': 'dance', 'user': parti, 'gamek': game.pk})
-        else:
-            return render(request, 'earth.html', {'status': 'waitprompt', 'user': parti, 'gamek': game.pk})
+        #if game.last_save and game.last_save.lower().startswith('dance'):
+        dancing = False  # TODO get this from GameLog
+        return render(request, 'earth_cheer.html', {'dance': dancing, 'userk': parti.pk, 'gamek': game.pk})
 
     # 3B. otherwise send a prompt form (includes last thing user said)
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
     # TODO: after the first prompt, the active prompt will change to a random suer entered one
-    return render(request, 'earth.html', {'status': 'prompt', 'user': parti,
-                                          'prompt': game.active_prompt,
-                                          'gamek': game.pk, 'lastsaid': last,})
+    return render(request, 'earth_prompt.html', {'emoji': parti.emoji, 'lastsaid': last,
+                                                 'prompt': game.active_prompt, 'gamek': game.pk,})
+
+
+def get_participant_or_httpresponse(game, request):
+    # if no participant saved or just picked, then return emoji list
+    if 'participant' not in request.session and 'e' not in request.GET:
+        return None, render(request, 'earth_pickemoji.html', {'emojis': build_emoji_list()})
+
+    # has user picked a (new) emoji? if so lets create a participant for session and reload
+    if 'e' in request.GET:
+        e = request.GET['e']
+        if Participant.objects.filter(game=game, emoji=e):
+            # emoji exists, add suffix
+            n = Participant.objects.filter(game=game, emoji=e).count()
+            e += str(n+1)
+        parti = Participant.objects.create(game=game, emoji=e)
+        parti.geo = get_client_ip(request)  # MAYBE: actually store geolocation of participant!
+        parti.save()
+        request.session['participant'] = parti.pk  # cache for next time
+        return None, HttpResponseRedirect(reverse('earth_webhome'))
+
+    # otherwise, load participant from session, and return that... (reload if fail)
+    assert 'participant' in request.session
+    try:
+        parti = Participant.objects.get(pk=request.session['participant'], game=game)
+        return parti, None
+    except:
+        parti = None  # either participant doesn't exist or we are in a new game
+        del request.session['participant']
+        return None, HttpResponseRedirect(reverse('earth_webhome'))
+
+
 
 
 def maybe_expand_ftext(ftext):
@@ -124,7 +129,7 @@ def find_active_game():
     return games[0] if games else None
 
 
-def get_user_ip(request):
+def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
@@ -136,12 +141,12 @@ def get_user_ip(request):
 def user_send_energy(request, partik):
     # this is an ajax call to send energy to godot
     # (note: participant also identifies the game)
-    # TODO:  we could store these in a queue, or in the participant object for now
+    # TODO: STORE THIS IN A MEMCACHE QUEUE AND ONLY COMMIT TO DB IN GETSTATS
     parti = Participant.objects.get(pk=partik)
-    event = EventQueue.objects.create(game=parti.game)
-    event.event = "e_" + request.GET['energy'][0]  # one letter energy type
-    event.info = "p_" + partik
-    event.save()
+    log = GameLog.objects.create(game=parti.game)
+    log.event = "e_" + request.GET['energy'][0]  # one letter energy type
+    log.info = "p_" + partik
+    log.save()
     return JsonResponse(True, safe=False)
 
 
@@ -150,11 +155,13 @@ def user_needs_refresh(request, gamek):
         go = GamePlay.objects.get(pk=gamek)
     except GamePlay.DoesNotExist:
         raise Http404(f"No game {gamek}")
-    if find_active_game() != gamek:
+    if find_active_game() != go:
         return JsonResponse(True, safe=False)    # force a refresh if game changed!
-    ep = request.GET['ep']  # expecting a prompt?
-    ret = (ep=="1" and not go.active_prompt) or (ep=="0" and go.active_prompt)
-    return JsonResponse(ret, safe=False)
+
+    expecting_prompt = int(request.GET['ep'])
+    is_active_prompt = (go.active_prompt is not None) * 1
+    refresh = (expecting_prompt != is_active_prompt)
+    return JsonResponse(refresh, safe=False)
 
 
 def godot_new_game(request):
@@ -167,17 +174,17 @@ def godot_new_game(request):
     Participant.objects.filter(text__isnull=True).delete()
     GamePlay.objects.filter(participant__isnull=True,
                             text__isnull=True,
-                            eventqueue__isnull=True).delete()
+                            gamelog__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
 def godot_get_texts(request, gamek, promptk):
     if promptk != "0":
-        texts = Text.objects.filter(game=game, prompt__pk=promptk).order_by('pk')
+        texts = Text.objects.filter(game__pk=gamek, prompt__pk=promptk).order_by('pk')
         data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
                 for w in texts]
     else:
-        texts = Text.objects.filter(game=game, prompt__isnull=True).order_by('pk')
+        texts = Text.objects.filter(game__pk=gamek, prompt__isnull=True).order_by('pk')
         data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
                 for w in texts]
     return JsonResponse(data, safe=False)
@@ -197,12 +204,13 @@ def godot_get_stats(request, gamek):
     q_energy = ""
     q_after = 0 if 'qa' not in request.GET else int(request.GET['qa'])
     q_lastk = q_after
-    for ev in EventQueue.objects.filter(game=go, pk__gt=q_after):  # not gte!
+    for ev in GameLog.objects.filter(game=go, pk__gt=q_after):
+        # TODO update this logic with MEMCACHE ETc
         if ev.event.startswith("e_"):
             q_energy += ev.event.replace("e_", "")
         q_lastk = ev.pk if ev.pk > q_lastk else q_lastk
     data = {'participants': emojies, 'q_energy': q_energy, 'q_lastk': q_lastk,
-            'lastsave': go.last_save or "",}
+            'lastsave': "",}  # TODO: LAST SAVE IF NECESSARY (PERHAPS NOT)
     return JsonResponse(data)
 
 
