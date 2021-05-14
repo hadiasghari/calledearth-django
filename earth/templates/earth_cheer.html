@@ -12,12 +12,12 @@
 	<div class="external">
 	<div class="middle">
     <div  class="w3-card-4 center {% if dance %}w3-cyan{% endif %}">
-      <p>Hey {{ user.emoji }},
+      <p>Hey {{ participant.emoji }},
         {% if dance %}🎉 LET'S DANCE! 🎉
         {% else %}we are waiting for the Body to find the next story fragment...
         {% endif %}
       </p>
-        Send energy:
+        Send energy: <br/>
         <img src="{% static 'love.png' %}" onclick="send_energy('l')" width=10% id="img_l">
         <img src="{% static 'power.png' %}" onclick="send_energy('p')" width=10% id="img_p">
         <img src="{% static 'funny.png' %}" onclick="send_energy('f')" width=10% id="img_f">
@@ -40,7 +40,7 @@
 		}
 		async function send_energy(s) {
 			var ajax = new XMLHttpRequest();
-			var url = '{% url "earth_sendenergy" userk %}?energy=' + s;
+			var url = '{% url "earth_sendenergy" participant.pk %}?energy=' + s;
 			ajax.open('GET', url, true);
 			ajax.send();
 			// some dramatic effect:

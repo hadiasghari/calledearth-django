@@ -39,7 +39,7 @@ def web_home(request):
     if not game.active_prompt:
         #if game.last_save and game.last_save.lower().startswith('dance'):
         dancing = False  # TODO get this from GameLog
-        return render(request, 'earth_cheer.html', {'dance': dancing, 'userk': parti.pk, 'gamek': game.pk})
+        return render(request, 'earth_cheer.html', {'dance': dancing, 'participant': parti, 'gamek': game.pk})
 
     # 3B. otherwise send a prompt form (includes last thing user said)
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
