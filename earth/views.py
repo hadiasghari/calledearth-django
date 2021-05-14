@@ -166,6 +166,9 @@ def user_needs_refresh(request, gamek):
 
 def godot_new_game(request):
     game = GamePlay.objects.create()  # game defaults are good
+    game.godot_ip = get_client_ip(request)
+    game.save()
+    #print(game.godot_ip)
     parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
     # delete all existing hello world messages from system!
     Text.objects.filter(participant=parti, prompt__isnull=True).delete()
