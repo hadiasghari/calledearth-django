@@ -38,8 +38,8 @@ class Prompt(models.Model):
 class GameLog(models.Model):
 	game = models.ForeignKey(GamePlay, on_delete=models.CASCADE)  # can delete
 	time = models.DateTimeField(default=timezone.now)
-	event = models.CharField(max_length=20, default="", blank=True)
-	info = models.CharField(max_length=200, blank=True, null=True)
+	event = models.CharField(max_length=50, default="", blank=True)
+	info = models.TextField(blank=True, null=True)
 
 
 class Text(models.Model):

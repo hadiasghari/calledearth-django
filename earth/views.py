@@ -175,27 +175,19 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
-    parti, cr = Participant.objects.get_or_create(pk=0, emoji="🎩")  # system user not tied to game;
-    # delete all existing system (hello world) messages from system!
-    Text.objects.filter(participant=parti, prompt__isnull=True).delete()
-    Text.objects.create(game=game, participant=parti, text="Hello World!")
-    # let's also delete all empty participants & games, while at it, to clear admin UX
+    # When we started testing we used a system user not tied to any prompt; not anymore.
+    # Let's also delete all empty participants & games, while at it, to clear admin UX
+    # (this includes gamelog in cascade --  ino need: participant__isnull=True, gamelog__isnull=True).delete()
     Participant.objects.filter(text__isnull=True).delete()
-    # we should probably delete all system stuff
     GamePlay.objects.filter(text__isnull=True).delete()
-    # was: participant__isnull=True, gamelog__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
 def godot_get_texts(request, gamek, promptk):
-    if promptk != "0":
-        texts = Text.objects.filter(game__pk=gamek, prompt__pk=promptk).order_by('pk')
-        data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
-                for w in texts]
-    else:
-        texts = Text.objects.filter(game__pk=gamek, prompt__isnull=True).order_by('pk')
-        data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
-                for w in texts]
+    texts = Text.objects.filter(game__pk=gamek, prompt__pk=promptk).order_by('pk')
+    data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
+            for w in texts]
+    print(f"DEBUG godot_get_texts(req, {gamek}, {promptk}) → {data}")
     return JsonResponse(data, safe=False)
 
 
@@ -233,6 +225,7 @@ def godot_set_prompt(request, gamek, promptk):
         po.save()
     go.active_prompt = po
     go.save()
+    GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
     return JsonResponse(po.provocation, safe=False)
 
 
@@ -243,8 +236,7 @@ def godot_set_state(request, gamek, state):
     if state.lower() != "writing":
         go.active_prompt = None
     go.save()
-    # also let's create a log for this change
-    GameLog.objects.create(game=go, event="st_" + state)
+    GameLog.objects.create(game=go, event="state_" + state)  # log it too
     return JsonResponse(True, safe=False)
 
 
