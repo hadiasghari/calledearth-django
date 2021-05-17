@@ -20,6 +20,13 @@ def web_home(request):
     if not parti:
         return response
 
+
+    # TODO game 'states'
+    # - wait-start
+    # - write (active-rpompt/writing/camera)
+    # - search (we just wait) + revive + dance + continue:  in all we can send energy
+    # - credits (finished, show all messages)
+
     # 3A. did we get a form response, then save it and reload
     if 'f_text' in request.GET:
         f_t = request.GET['f_text']
@@ -46,7 +53,7 @@ def web_home(request):
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
     # TODO: after the first prompt, the active prompt will change to a random suer entered one
-    return render(request, 'earth_prompt.html', {'emoji': parti.emoji, 'lastsaid': last,
+    return render(request, 'earth_write.html', {'emoji': parti.emoji, 'lastsaid': last,
                                                  'prompt': game.active_prompt, 'gamek': game.pk,})
 
 
@@ -63,7 +70,10 @@ def get_participant_or_httpresponse(game, request):
             n = Participant.objects.filter(game=game, emoji=e).count()
             e += str(n+1)
         parti = Participant.objects.create(game=game, emoji=e)
-        parti.geo = get_client_ip(request)  # MAYBE: actually store geolocation of participant!
+        parti.geo = get_client_ip(request)
+        if '.' in parti.geo:
+            # pseudonymize the client IP address for privacy (needs fix for IPv6)
+            parti.geo = ".".join(parti.geo.split('.')[:2]) + ".0.0"
         parti.save()
         request.session['participant'] = parti.pk  # cache for next time
         return None, HttpResponseRedirect(reverse('earth_webhome'))
@@ -171,9 +181,9 @@ def godot_new_game(request):
     Text.objects.create(game=game, participant=parti, text="Hello World!")
     # let's also delete all empty participants & games, while at it, to clear admin UX
     Participant.objects.filter(text__isnull=True).delete()
-    GamePlay.objects.filter(participant__isnull=True,
-                            text__isnull=True,
-                            gamelog__isnull=True).delete()
+    # we should probably delete all system stuff
+    GamePlay.objects.filter(text__isnull=True).delete()
+    # was: participant__isnull=True, gamelog__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
@@ -209,7 +219,7 @@ def godot_get_stats(request, gamek):
 
     data = {'participants': emojies,
             'q_energy': energies,  # lets rename on server
-            'q_lastk': 0,  # unnecessay
+            'q_lastk': 0,  # TODO: unnecessay (remove upon changing godot code)
             'lastsave': "",}  # TODO: LAST SAVE IF NECESSARY (PERHAPS NOT)
     return JsonResponse(data)
 
@@ -226,10 +236,22 @@ def godot_set_prompt(request, gamek, promptk):
     return JsonResponse(po.provocation, safe=False)
 
 
-def godot_save_game(request, gamek, loc):
-    # reset activeprompt and save location
+def godot_set_state(request, gamek, state):
+    # game state has changed, record it for web users....
     go = GamePlay.objects.get(pk=gamek)
-    go.active_prompt = None
-    go.last_save = loc
+    go.state = state
+    if state.lower() != "writing":
+        go.active_prompt = None
     go.save()
+    # also let's create a log for this change
+    GameLog.objects.create(game=go, event="st_" + state)
+    return JsonResponse(True, safe=False)
+
+
+def godot_log_event(request, gamek, event):
+    # this method is used to log major game events as they happen (incl death etc)
+    info = None
+    if 'info' in request.GET:
+        info = request.GET['info']
+    GameLog.objects.create(game=go, event=event, info=info)
     return JsonResponse(True, safe=False)

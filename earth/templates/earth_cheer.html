@@ -17,12 +17,13 @@
         {% else %}we are waiting for the Body to find the next story fragment...
         {% endif %}
       </p>
-        Send energy: <br/>
+        <p>
         <img src="{% static 'love.png' %}" onclick="send_energy('l')" width=10% id="img_l">
         <img src="{% static 'power.png' %}" onclick="send_energy('p')" width=10% id="img_p">
         <img src="{% static 'funny.png' %}" onclick="send_energy('f')" width=10% id="img_f">
         <img src="{% static 'sad.png' %}" onclick="send_energy('s')" width=10% id="img_s">
         <img src="{% static 'mad.png' %}" onclick="send_energy('m')" width=10% id="img_m">
+			</p>
     </div>
 	  <footer>"We Called It Earth", by Jessica Renfro & Hadi Asghari</footer>
 
@@ -38,17 +39,22 @@
 			}
 			ajax.send();
 		}
+		var sending = 0;
 		async function send_energy(s) {
-			var ajax = new XMLHttpRequest();
-			var url = '{% url "earth_sendenergy" participant.pk %}?energy=' + s;
-			ajax.open('GET', url, true);
-			ajax.send();
-			// some dramatic effect:
-			var img = document.getElementById('img_' + s);
-			var drama = "w3-animate-opacity"; // "w3-spin";
-			img.classList.add(drama);
-			await new Promise(r => setTimeout(r, 500));
-			img.classList.remove(drama);
+			if (sending == 0) {
+				sending++;  // limit simultenous energies
+				var ajax = new XMLHttpRequest();
+				var url = '{% url "earth_sendenergy" participant.pk %}?energy=' + s;
+				ajax.open('GET', url, true);
+				ajax.send();
+				// some dramatic effect:
+				var img = document.getElementById('img_' + s);
+				var drama = "w3-animate-opacity"; // "w3-spin";
+				img.classList.add(drama);
+				await new Promise(r => setTimeout(r, 500));
+				img.classList.remove(drama);
+				--sending;
+			}
 		}
 		</script>
 

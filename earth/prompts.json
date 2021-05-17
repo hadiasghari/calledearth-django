@@ -2,31 +2,59 @@
   {
     "model": "earth.prompt",
     "pk": 1,
-    "fields": { "provocation": "Once upon a time, we called it Earth. But now, it is called..."}
+    "fields": { "active": false,
+        "provocation": "Once upon a time, there were many words for her..."}
   },
   {
     "model": "earth.prompt",
     "pk": 2,
-    "fields": { "provocation": "I remember a diaphanous boundary running along the outside of it, a fiery core in the center, and a home sandwiched precariously between..."}
+    "fields": { "active": false,
+       "provocation": "When I found the sun, she whispered a secret to me.."}
   },
   {
     "model": "earth.prompt",
     "pk": 3,
-    "fields": { "provocation": "Memories watered the seeds of the garden..."}
+    "fields": { "active": false, "provocation": "Memories watered the seeds of the garden..."}
   },
   {
     "model": "earth.prompt",
     "pk": 4,
-    "fields": { "provocation": "We slept soundly under the soil..."}
+    "fields": { "active": false, "provocation": "We slept soundly under the soil..."}
   },
   {
     "model": "earth.prompt",
     "pk": 5,
-    "fields": { "provocation": "When I found the sun, she whispered a secret to me..."}
+    "fields": { "active": false,
+      "provocation": "I remember a diaphanous boundary running along the outside of it, a fiery core in the center, and a home sandwiched precariously between..."}
   },
   {
     "model": "earth.prompt",
     "pk": 6,
-    "fields": { "provocation": "I dug my toes in deep—almost there now..."}
-  }
+    "fields": { "active": false, "provocation": "I dug my toes in deep—almost there now..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 10,
+    "fields": { "provocation": "Once upon a time, we called it Earth. But now, it is called..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 11,
+    "fields": { "provocation": "Level1 Button1..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 12,
+    "fields": { "provocation": "Level1 Button2..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 21,
+    "fields": { "provocation": "Level2 Button1..."}
+  },
+  {
+    "model": "earth.prompt",
+    "pk": 22,
+    "fields": { "provocation": "Level2 Button2..."}
+  },
 ]

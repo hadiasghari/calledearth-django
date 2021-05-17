@@ -13,5 +13,6 @@ urlpatterns = [
     url(r'^gogettexts/(?P<gamek>\d+)/(?P<promptk>\d+)$', views.godot_get_texts),
     url(r'^gogetstats/(?P<gamek>\d+)$', views.godot_get_stats),
     url(r'^gosetprompt/(?P<gamek>\d+)/(?P<promptk>\d+)$', views.godot_set_prompt),
-    url(r'^gosavegame/(?P<gamek>\d+)/(?P<loc>.+)$', views.godot_save_game),
+    url(r'^gosetstate/(?P<gamek>\d+)/(?P<state>.+)$', views.godot_set_state),
+    url(r'^gologevent/(?P<gamek>\d+)/(?P<event>.+)$', views.godot_log_event),
 ]

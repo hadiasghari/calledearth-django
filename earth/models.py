@@ -8,7 +8,8 @@ class GamePlay(models.Model):
 	game_ver = models.IntegerField(default=1)  # (for future game versions)
 	godot_ip = models.CharField(max_length=50, null=True, blank=True)
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
-	#last_save = models.CharField()  # understood by godot >> use GameLog instead!
+	state = models.CharField(max_length=10, blank=True, default="")
+	#last_save = models.CharField()  # understood by godot >> use GameLog instead for level
 	description = models.TextField(blank=True, null=True)  # (for ourselves to recall this game)
 
 	def __str__(self):
@@ -16,7 +17,7 @@ class GamePlay(models.Model):
 
 
 class Participant(models.Model):
-	game = models.ForeignKey(GamePlay, on_delete=models.PROTECT, null=True)
+	game = models.ForeignKey(GamePlay, on_delete=models.CASCADE, null=True)  # can delete if has no Texts (PROTECT)
 	joined_at = models.DateTimeField(default=timezone.now)
 	emoji = models.CharField(max_length=10, default="👓")  # (similar to nickname, for game users)
 	geo = models.CharField(max_length=50, blank=True, null=True)  # ip or geolocation
@@ -26,19 +27,19 @@ class Prompt(models.Model):
 	# we have some initial prompts. load fixture with: `manage.py loaddata`
 	provocation = models.CharField(max_length=500)  # The Prompt Question
 	active = models.BooleanField(default=True)
-	description = models.TextField(blank=True, null=True)
+	comments = models.TextField(blank=True, null=True)
 	# maybe in future: add a picture for the prompt
-	# location & fill correctly are view related and set in godot (not in django/db)
+	# design note: location is 'view related' and hence set in godot (not in django/db)
 
 	def __str__(self):
 		return f"{self.pk} ({self.provocation[:10]}...)"
 
 
 class GameLog(models.Model):
-	game = models.ForeignKey(GamePlay, on_delete=models.PROTECT)
+	game = models.ForeignKey(GamePlay, on_delete=models.CASCADE)  # can delete
 	time = models.DateTimeField(default=timezone.now)
 	event = models.CharField(max_length=20, default="", blank=True)
-	info = models.CharField(max_length=200, blank=True, null=True) 
+	info = models.CharField(max_length=200, blank=True, null=True)
 
 
 class Text(models.Model):
