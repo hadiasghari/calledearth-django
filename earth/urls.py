@@ -14,5 +14,5 @@ urlpatterns = [
     url(r'^gogetstats/(?P<gamek>\d+)$', views.godot_get_stats),
     url(r'^gosetprompt/(?P<gamek>\d+)/(?P<promptk>\d+)$', views.godot_set_prompt),
     url(r'^gosetstate/(?P<gamek>\d+)/(?P<state>.+)$', views.godot_set_state),
-    url(r'^gologevent/(?P<gamek>\d+)/(?P<event>.+)$', views.godot_log_event),
+    #url(r'^golog/(?P<gamek>\d+)/(?P<event>.+)$', views.godot_log_event),
 ]

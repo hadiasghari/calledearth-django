@@ -29,7 +29,7 @@ def web_home(request):
 
     # 3A. did we get a form response, then save it and reload
     if 'f_text' in request.GET:
-        f_t = request.GET['f_text']
+        f_t = request.GET['f_text']  #.replace("\n", "")  # remove new lines
         f_p = Prompt.objects.get(pk=request.GET['f_pk'])
         if f_t:
             texts_tosave = maybe_expand_ftext(f_t)
@@ -53,8 +53,10 @@ def web_home(request):
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
     # TODO: after the first prompt, the active prompt will change to a random suer entered one
-    return render(request, 'earth_write.html', {'emoji': parti.emoji, 'lastsaid': last,
-                                                 'prompt': game.active_prompt, 'gamek': game.pk,})
+    return render(request, 'earth_write.html', {'emoji': parti.emoji[0] if len(parti.emoji) >= 1 else "!",
+                                                'lastsaid': last,
+                                                'prompt': game.active_prompt,
+                                                'gamek': game.pk,})
 
 
 def get_participant_or_httpresponse(game, request):
@@ -172,20 +174,21 @@ def user_needs_refresh(request, gamek):
 
 
 def godot_new_game(request):
+    # Let's delete all empty participants, games, gamelogs (via cascade),to clear admin UX
+    # (When we started testing we used a system user not tied to any prompt; not anymore)
+    Participant.objects.filter(text__isnull=True).delete()
+    GamePlay.objects.filter(text__isnull=True).delete()
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
-    # When we started testing we used a system user not tied to any prompt; not anymore.
-    # Let's also delete all empty participants & games, while at it, to clear admin UX
-    # (this includes gamelog in cascade --  ino need: participant__isnull=True, gamelog__isnull=True).delete()
-    Participant.objects.filter(text__isnull=True).delete()
-    GamePlay.objects.filter(text__isnull=True).delete()
     return JsonResponse(game.pk, safe=False)
 
 
 def godot_get_texts(request, gamek, promptk):
     texts = Text.objects.filter(game__pk=gamek, prompt__pk=promptk).order_by('pk')
-    data = [{'pk': w.pk, 'text': w.text, 'parti_code': ord(w.participant.emoji)}
+    data = [{'pk': w.pk, 'text': w.text,
+             'parti_code': ord(w.participant.emoji[0]) if len(w.participant.emoji) >= 1 else "?",
+             'parti_code2': w.participant.emoji[1] if len(w.participant.emoji) > 1 else ""}
             for w in texts]
     print(f"DEBUG godot_get_texts(req, {gamek}, {promptk}) → {data}")
     return JsonResponse(data, safe=False)
@@ -199,9 +202,11 @@ def godot_get_stats(request, gamek):
         raise Http404(f"No game {gamek}")
 
     emojies = []
+    emojies_plus = []
     energies = ""
     for p in Participant.objects.filter(game=go):
-        emojies.append(ord(p.emoji))
+        emojies.append(ord(p.emoji[0]))
+        emojies_plus.append(p.emoji)  # includes the full emoji in case we want to display it
         # check all queued energ (powerups)
         energy = cache.get(f"e_{p.pk}")
         if energy:
@@ -209,41 +214,46 @@ def godot_get_stats(request, gamek):
             energies += energy
             cache.set(f"e_{p.pk}", "")
 
-    data = {'participants': emojies,
-            'q_energy': energies,  # lets rename on server
-            'q_lastk': 0,  # TODO: unnecessay (remove upon changing godot code)
-            'lastsave': "",}  # TODO: LAST SAVE IF NECESSARY (PERHAPS NOT)
+    data = {'participants': emojies, 'participants+': emojies_plus, 'q_energy': energies,  }
     return JsonResponse(data)
 
 
 def godot_set_prompt(request, gamek, promptk):
     # set activeprompt and return its text
     go = GamePlay.objects.get(pk=gamek)
-    po, cr = Prompt.objects.get_or_create(pk=promptk)
-    if cr:
-        po.provocation = "!UNKNOWN PROMPT!"
-        po.save()
-    go.active_prompt = po
-    go.save()
-    GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
+    if promptk == "0" or promptk == 0:
+        go.active_prompt = None
+        go.state = "?"  # TODO: ? (decide if this correct)
+        go.save()
+        GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
+    else:
+        po, cr = Prompt.objects.get_or_create(pk=promptk)
+        if cr:
+            po.provocation = "!UNKNOWN PROMPT!"
+            po.save()
+        go.active_prompt = po
+        go.state = "writing"
+        go.save()
+        GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
     return JsonResponse(po.provocation, safe=False)
 
 
 def godot_set_state(request, gamek, state):
-    # game state has changed, record it for web users....
+    # game state has changed, record it for web UX (and in DB)....
     go = GamePlay.objects.get(pk=gamek)
-    go.state = state
-    if state.lower() != "writing":
-        go.active_prompt = None
-    go.save()
-    GameLog.objects.create(game=go, event="state_" + state)  # log it too
+    extra_info = request.GET['info'] if 'info' in request.GET else None
+    if state != "milestone":
+        go.state = state
+        go.save()
+        GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
+    else:
+        # milestones are only logged, no actual game state.
+        GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
     return JsonResponse(True, safe=False)
 
 
-def godot_log_event(request, gamek, event):
+#def godot_log_event(request, gamek, event):
     # this method is used to log major game events as they happen (incl death etc)
-    info = None
-    if 'info' in request.GET:
-        info = request.GET['info']
-    GameLog.objects.create(game=go, event=event, info=info)
-    return JsonResponse(True, safe=False)
+#    extra_info = request.GET['info'] if 'info' in request.GET else None
+#    GameLog.objects.create(game=go, event=event, info=extra_info)
+#    return JsonResponse(True, safe=False)
