@@ -163,9 +163,9 @@ def user_needs_refresh(request, gamek):
     try:
         go = GamePlay.objects.get(pk=gamek)
     except GamePlay.DoesNotExist:
-        raise Http404(f"No game {gamek}")
-    if find_active_game() != go:
-        return JsonResponse(True, safe=False)    # force a refresh if game changed!
+        return JsonResponse(True, safe=False)    # force a refresh if game doesn't exist
+    if find_active_game().pk != gamek:
+        return JsonResponse(True, safe=False)    # force a refresh if active game changed!
 
     expecting_prompt = int(request.GET['ep'])
     is_active_prompt = (go.active_prompt is not None) * 1
@@ -181,6 +181,7 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
+    log = GameLog.objects.create(game=game, event="new_game")
     return JsonResponse(game.pk, safe=False)
 
 
@@ -190,7 +191,7 @@ def godot_get_texts(request, gamek, promptk):
              'parti_code': ord(w.participant.emoji[0]) if len(w.participant.emoji) >= 1 else "?",
              'parti_code2': w.participant.emoji[1] if len(w.participant.emoji) > 1 else ""}
             for w in texts]
-    print(f"DEBUG godot_get_texts(req, {gamek}, {promptk}) → {data}")
+    #print(f"DEBUG godot_get_texts(req, {gamek}, {promptk}) → {data}")
     return JsonResponse(data, safe=False)
 
 
@@ -249,6 +250,9 @@ def godot_set_state(request, gamek, state):
     else:
         # milestones are only logged, no actual game state.
         GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
+    if state != "writing":
+        go.active_prompt = None  # also let's unset the prompt
+        go.save()
     return JsonResponse(True, safe=False)
 
 

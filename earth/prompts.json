@@ -35,7 +35,7 @@
   {
     "model": "earth.prompt",
     "pk": 10,
-    "fields": { "provocation": "Once upon a time, we called it Earth. But now, it is called..."}
+    "fields": { "provocation": "Once upon a time, we called it Earth. But now it is called..."}
   },
   {
     "model": "earth.prompt",
