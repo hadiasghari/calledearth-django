@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<head>
+		<title>We Called It Earth</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'earth.css' %}">
+</head>
+<body>
+	<div class="external">
+	<div class="middle">
+    <div class="center">
+      	<h1>We Called It Earth</h1>
+        <!-- TODO: 1. should this be wider? 2. show emojis? -->
+        <ul>
+        {% for t in texts %}
+            {% ifchanged t.prompt %}
+            </ul><h2>{{ t.prompt }}</h2><ul>
+            {% endifchanged %}
+              <li>{{ t.text }}</li>
+        {% endfor %}
+        </ul>
+		</div>
+	  <footer>"We Called It Earth", by Jessica Renfro & Hadi Asghari</footer>
+  </div>
+  </div>
+  <script>
+    // no refresh on credit/story screen window.setInterval('window.location.reload()', 10000);
+  </script>
+</body>
+</html>

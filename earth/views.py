@@ -20,14 +20,7 @@ def web_home(request):
     if not parti:
         return response
 
-
-    # TODO game 'states'
-    # - wait-start
-    # - write (active-rpompt/writing/camera)
-    # - search (we just wait) + revive + dance + continue:  in all we can send energy
-    # - credits (finished, show all messages)
-
-    # 3A. did we get a form response, then save it and reload
+    # 3. did we get a form response, then save it and reload so not to lose data
     if 'f_text' in request.GET:
         f_t = request.GET['f_text']  #.replace("\n", "")  # remove new lines
         f_p = Prompt.objects.get(pk=request.GET['f_pk'])
@@ -40,19 +33,23 @@ def web_home(request):
             # continue in this state until active_prompt is reset by GODOT engine
             return HttpResponseRedirect(reverse('earth_webhome'))
 
-    # 4. no active-prompt?  wait for one in this stage of game-play
-    # Q: I wonder if part of this logic cna be moved to template since they all return similar thigns
-    # TODO: give dance, etc, and yet to add credit screen, maybe this needs a nicer flowchart :)
-    # TODO: REVIVAL SCREEN ALSO
-    if not game.active_prompt:
-        #if game.last_save and game.last_save.lower().startswith('dance'):
-        dancing = False  # TODO get this from GameLog
-        return render(request, 'earth_cheer.html', {'dance': dancing, 'participant': parti, 'gamek': game.pk})
+    # 4A. handle a variety of game states
+    if game.state == "credits":
+        # TODO: make this credits+story template
+        # -- which shows whole game story as narrated by audence... (prompt-titles can be loaded via texts)
+        texts = Text.objects.filter(game=game).order_by('prompt', 'pk')
+        return render(request, 'earth_story.html', {'texts': texts})
 
-    # 3B. otherwise send a prompt form (includes last thing user said)
+    # 4B. not in credits and no active-prompt: cheering mode.
+    if not game.active_prompt:
+        # this is a number of screen including waiting for prompt, revival, and dancing.
+        # only difference among them is the sentence shown which template can choose
+        return render(request, 'earth_cheer.html', {'state': game.state, 'participant': parti, 'gamek': game.pk})
+
+    # 4C. so we are in writing mode. show a prompt form (includes last thing user said)
+    # (Future: after the first prompt, the active prompt will change to a random user entered one)
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
-    # TODO: after the first prompt, the active prompt will change to a random suer entered one
     return render(request, 'earth_write.html', {'emoji': parti.emoji[0] if len(parti.emoji) >= 1 else "!",
                                                 'lastsaid': last,
                                                 'prompt': game.active_prompt,
@@ -93,10 +90,10 @@ def get_participant_or_httpresponse(game, request):
 
 def maybe_expand_ftext(ftext):
     # if there is a hidden command in the entered text prompt, expand it with test data....
-    if not ftext.startswith("!@#") and not ftext.startswith("QWE"):
+    if not ftext.startswith("!@#") and not ftext.startswith("qwe"):
         return [ftext]
     try:
-        n = int(ftext.replace("!@#", "").replace("QWE", ""))
+        n = int(ftext.replace("!@#", "").replace("qwe", ""))
     except:
         return [ftext]
 
@@ -160,16 +157,17 @@ def user_send_energy(request, partik):
 
 
 def user_needs_refresh(request, gamek):
+    # force a refresh if active game has changed, or if gamestate has changed
     try:
         go = GamePlay.objects.get(pk=gamek)
     except GamePlay.DoesNotExist:
-        return JsonResponse(True, safe=False)    # force a refresh if game doesn't exist
-    if find_active_game().pk != gamek:
-        return JsonResponse(True, safe=False)    # force a refresh if active game changed!
+        return JsonResponse(True, safe=False)
+    if find_active_game() != go:
+        return JsonResponse(True, safe=False)
 
-    expecting_prompt = int(request.GET['ep'])
-    is_active_prompt = (go.active_prompt is not None) * 1
-    refresh = (expecting_prompt != is_active_prompt)
+    last_state = request.GET['st']
+    refresh = (last_state != str(go.state))
+    #print("DBG:", last_state, 'vs.', go.state, "=>", refresh)
     return JsonResponse(refresh, safe=False)
 
 
@@ -224,7 +222,7 @@ def godot_set_prompt(request, gamek, promptk):
     go = GamePlay.objects.get(pk=gamek)
     if promptk == "0" or promptk == 0:
         go.active_prompt = None
-        go.state = "?"  # TODO: ? (decide if this correct)
+        go.state = "?"  # (decide if this is correct)
         go.save()
         GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
     else:

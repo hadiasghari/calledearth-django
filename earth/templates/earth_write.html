@@ -15,7 +15,7 @@
 			<p>{{ prompt.provocation }}</p>
 			<form>
 				{{ emoji }}
-				<textarea id="f_text" name="f_text" maxlength=140 onkeyup="count_chars()"></textarea>
+				<textarea id="f_text" name="f_text" maxlength={{ prompt.char_limit|default_if_none:140 }} onkeyup="count_chars()"></textarea>
 				<input type="hidden" id="f_promptk" name="f_pk" value="{{ prompt.pk }}">
 				<input value="→" type="submit">
 			</form>
@@ -30,7 +30,7 @@
 		window.setInterval('try_refresh()', 5000);
 		function count_chars() {
 			// show characters remaining to 140 -- or defined value
-			var nl = 140 - document.getElementById('f_text').value.length;
+			var nl = {{ prompt.char_limit|default_if_none:140 }} - document.getElementById('f_text').value.length;
 			var scl = document.getElementById('charsleft');
 			scl.textContent = "(" + nl + " characters left)";
 		}
@@ -40,7 +40,7 @@
 			else {
 				// refresh_if_prompt moved on
 				var ajax = new XMLHttpRequest();
-					ajax.open('GET', '{% url "earth_needrefresh" gamek %}?ep=1', true);
+					ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st=writing', true);
 					ajax.onload = function() {
 						if (this.status == 200 && this.response == "true")
 								window.location.reload();

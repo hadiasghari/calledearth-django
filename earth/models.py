@@ -28,6 +28,7 @@ class Prompt(models.Model):
 	provocation = models.CharField(max_length=500)  # The Prompt Question
 	active = models.BooleanField(default=True)
 	comments = models.TextField(blank=True, null=True)
+	char_limit = models.IntegerField(blank=True, null=True)  # defaults to 140 in UX
 	# maybe in future: add a picture for the prompt
 	# design note: location is 'view related' and hence set in godot (not in django/db)
 

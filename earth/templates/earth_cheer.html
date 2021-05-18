@@ -13,7 +13,10 @@
 	<div class="middle">
     <div  class="w3-card-4 center {% if dance %}w3-cyan{% endif %}">
       <p>Hey {{ participant.emoji }},
-        {% if dance %}🎉 LET'S DANCE! 🎉
+        {% if state == "dance" %}🎉 LET'S DANCE! 🎉
+				{% elif state == "contq" %} give energy for the next level!
+				{% elif state == "revival" %} ...
+				<!--to test other states, eg dead -->
         {% else %}we are waiting for the Body to find the next story fragment...
         {% endif %}
       </p>
@@ -32,7 +35,7 @@
     window.setInterval('window.location.reload()', 30000);  // failsafe!
 		function refresh_if_prompt() {
 			var ajax = new XMLHttpRequest();
-			ajax.open('GET', '{% url "earth_needrefresh" gamek %}?ep=0', true);
+			ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st={{ state }}', true);
 			ajax.onload = function() {
 				if (this.status == 200 && this.response == "true")
 						window.location.reload();
