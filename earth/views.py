@@ -211,10 +211,10 @@ def godot_get_stats(request, gamek):
         # check all queued energ (powerups)
         energy = cache.get(f"e_{p.pk}")
         if energy:
-            log = GameLog.objects.create(game=go, event=f"energy_{p.pk}", info=energy)
             energies += energy
             cache.set(f"e_{p.pk}", "")
-
+    if energies:
+        GameLog.objects.create(game=go, event=f"energy", info=energies)
     data = {'participants': emojies, 'participants+': emojies_plus, 'q_energy': energies,  }
     return JsonResponse(data)
 
