@@ -51,7 +51,7 @@
   {
     "model": "earth.prompt",
     "pk": 21,
-    "fields": { "provocation": "Some force held the pieces together..."}
+    "fields": { "provocation": "There were lights twinkling in the windows..."}
   },
   {
     "model": "earth.prompt",

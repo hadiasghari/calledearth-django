@@ -34,11 +34,18 @@
 			var scl = document.getElementById('charsleft');
 			scl.textContent = "(" + nl + " characters left)";
 		}
+		var n = 0;
 		function try_refresh() {
 			if (document.getElementById('f_text').value != "")
-				window.setInterval('try_refresh()', 5000);
+				window.setInterval('try_refresh()', 3000);
 			else {
 				// refresh_if_prompt moved on
+				n += 1;
+				if (n >= 10) {
+					// failsafe reload every 30s
+					window.location.reload();
+				}
+
 				var ajax = new XMLHttpRequest();
 					ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st=writing', true);
 					ajax.onload = function() {

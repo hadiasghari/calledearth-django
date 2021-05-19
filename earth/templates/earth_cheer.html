@@ -14,7 +14,7 @@
     <div  class="w3-card-4 center {% if dance %}w3-cyan{% endif %}">
       <p>
         {% if state == "dance" %}Hey {{ participant.emoji }}, 🎉 LET'S DANCE! 🎉
-				{% elif state == "contq" %}Hey {{ participant.emoji }}, send energy if you are ready for more!
+				{% elif state == "contq" %}Hey {{ participant.emoji }}, are you ready for more?
 				{% elif state == "revival" %}<!-- empty -->
         {% else %}Hey {{ participant.emoji }}, tell the Body <!-- ({{ state}}) -->how you are feeling...
         {% endif %}
@@ -31,7 +31,7 @@
 
     <script>
     window.setInterval('refresh_if_prompt()', 2000);
-    window.setInterval('window.location.reload()', 30000);  // failsafe!
+    window.setInterval('window.location.reload()', 30000);  // failsafe reload!
 		function refresh_if_prompt() {
 			var ajax = new XMLHttpRequest();
 			ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st={{ state }}', true);

@@ -223,6 +223,7 @@ def godot_set_prompt(request, gamek, promptk):
     # set activeprompt and return its text
     go = GamePlay.objects.get(pk=gamek)
     if promptk == "0" or promptk == 0:
+        po = None
         go.active_prompt = None
         go.state = "?"  # (decide if this is correct)
         go.save()
@@ -236,7 +237,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.state = "writing"
         go.save()
         GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
-    return JsonResponse(po.provocation, safe=False)
+    return JsonResponse(po.provocation if po else "", safe=False)
 
 
 def godot_set_state(request, gamek, state):
