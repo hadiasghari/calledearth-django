@@ -112,7 +112,7 @@ def maybe_expand_ftext(ftext):
     lt = []
     for i in range(n):
         t = test_strings[i%len(test_strings)]
-        lt.append(t[:140])  # add max 140 chars
+        lt.append(t[:120])  # add max 120 chars
     return lt
 
 
@@ -175,8 +175,9 @@ def user_needs_refresh(request, gamek):
 def godot_new_game(request):
     # Let's delete all empty participants, games, gamelogs (via cascade),to clear admin UX
     # (When we started testing we used a system user not tied to any prompt; not anymore)
-    Participant.objects.filter(text__isnull=True).delete()
-    GamePlay.objects.filter(text__isnull=True).delete()
+    last_hour = timezone.now() - timedelta(hours=1)
+    Participant.objects.filter(text__isnull=True, joined_at__lt=last_hour).delete()
+    GamePlay.objects.filter(text__isnull=True, start_time__lt=last_hour).delete()
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
