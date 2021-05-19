@@ -9,8 +9,8 @@ class GamePlay(models.Model):
 	godot_ip = models.CharField(max_length=50, null=True, blank=True)
 	active_prompt = models.ForeignKey('Prompt', on_delete=models.SET_NULL, null=True, blank=True)
 	state = models.CharField(max_length=10, blank=True, default="")
-	#last_save = models.CharField()  # understood by godot >> use GameLog instead for level
 	description = models.TextField(blank=True, null=True)  # (for ourselves to recall this game)
+	# Future: we could protect important GamePlays from being deleted by connecting them to a `protectedgames` table (with foreign key PROTECT)
 
 	def __str__(self):
 		return "GP{0}".format(self.pk)
@@ -33,7 +33,7 @@ class Prompt(models.Model):
 	# design note: location is 'view related' and hence set in godot (not in django/db)
 
 	def __str__(self):
-		return f"{self.pk} ({self.provocation[:10]}...)"
+		return f"{self.pk}|{self.provocation[:10]}..."
 
 
 class GameLog(models.Model):
@@ -50,3 +50,6 @@ class Text(models.Model):
 	 prompt_inner = models.CharField(max_length=20, default="", blank=True)  # subprompt (to another user)
 	 created_at = models.DateTimeField(default=timezone.now)
 	 text = models.TextField()  # The text (words) enetered by the participant
+
+	def __str__(self):
+		return f"{self.pk}|{self.text[:40]}..."

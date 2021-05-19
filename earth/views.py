@@ -112,7 +112,7 @@ def maybe_expand_ftext(ftext):
     lt = []
     for i in range(n):
         t = test_strings[i%len(test_strings)]
-        lt.append(t[:120])  # add max 120 chars
+        lt.append(t[:116] + "___!")  # add max 120 chars
     return lt
 
 
