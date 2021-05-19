@@ -12,11 +12,11 @@
 	<div class="external">
 	<div class="middle">
     <div  class="w3-card-4 center {% if dance %}w3-cyan{% endif %}">
-      <p>Hey {{ participant.emoji }},
-        {% if state == "dance" %}🎉 LET'S DANCE! 🎉
-				{% elif state == "contq" %} send energy if you are ready for more!
-				{% elif state == "revival" %} ...
-        {% else %}we are waiting for the Body <!-- ({{ state}}) -->to find the next story fragment...
+      <p>
+        {% if state == "dance" %}Hey {{ participant.emoji }}, 🎉 LET'S DANCE! 🎉
+				{% elif state == "contq" %}Hey {{ participant.emoji }}, send energy if you are ready for more!
+				{% elif state == "revival" %}<!-- empty -->
+        {% else %}Hey {{ participant.emoji }}, tell the Body <!-- ({{ state}}) -->how you are feeling...
         {% endif %}
       </p>
         <p>

@@ -36,12 +36,12 @@
     "model": "earth.prompt",
     "pk": 10,
     "fields": { "provocation": "We called it Earth. But now it is called...",
-                "char_limit": 10}
+                "char_limit": 50}
   },
   {
     "model": "earth.prompt",
     "pk": 11,
-    "fields": { "provocation": "Once upon a time... (Please look at your mobile phones)... "}
+    "fields": { "provocation": "Once upon a time... "}
   },
   {
     "model": "earth.prompt",
