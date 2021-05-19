@@ -14,10 +14,9 @@
     <div  class="w3-card-4 center {% if dance %}w3-cyan{% endif %}">
       <p>Hey {{ participant.emoji }},
         {% if state == "dance" %}🎉 LET'S DANCE! 🎉
-				{% elif state == "contq" %} give energy for the next level!
+				{% elif state == "contq" %} send energy if you are ready for more!
 				{% elif state == "revival" %} ...
-				<!--to test other states, eg dead -->
-        {% else %}we are waiting for the Body to find the next story fragment...
+        {% else %}we are waiting for the Body <!-- ({{ state}}) -->to find the next story fragment...
         {% endif %}
       </p>
         <p>

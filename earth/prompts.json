@@ -35,26 +35,27 @@
   {
     "model": "earth.prompt",
     "pk": 10,
-    "fields": { "provocation": "Once upon a time, we called it Earth. But now it is called..."}
+    "fields": { "provocation": "We called it Earth. But now it is called...",
+                "char_limit": 10}
   },
   {
     "model": "earth.prompt",
     "pk": 11,
-    "fields": { "provocation": "Level1 Button1..."}
+    "fields": { "provocation": "Once upon a time... (Please look at your mobile phones)... "}
   },
   {
     "model": "earth.prompt",
     "pk": 12,
-    "fields": { "provocation": "Level1 Button2..."}
+    "fields": { "provocation": "Some force held the pieces together..."}
   },
   {
     "model": "earth.prompt",
     "pk": 21,
-    "fields": { "provocation": "Level2 Button1..."}
+    "fields": { "provocation": "Some force held the pieces together..."}
   },
   {
     "model": "earth.prompt",
     "pk": 22,
-    "fields": { "provocation": "Level2 Button2..."}
+    "fields": { "provocation": "We were still reaching for the sun..."}
   }
 ]

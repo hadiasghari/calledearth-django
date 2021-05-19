@@ -13,6 +13,7 @@ def web_home(request):
     # 1. find an active game
     game = find_active_game()
     if not game:
+        # note, we could add a special get-param to show last game story when no new game
         return render(request, 'earth_waitstart.html', {})
 
     # 2. get participant from session (or emoji form)
@@ -241,12 +242,12 @@ def godot_set_state(request, gamek, state):
     # game state has changed, record it for web UX (and in DB)....
     go = GamePlay.objects.get(pk=gamek)
     extra_info = request.GET['info'] if 'info' in request.GET else None
-    if state != "milestone":
+    if state not in ("milestone", "event"):
         go.state = state
         go.save()
         GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
     else:
-        # milestones are only logged, no actual game state.
+        # milestones/events are only logged, no game state change.
         GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
     if state != "writing":
         go.active_prompt = None  # also let's unset the prompt
