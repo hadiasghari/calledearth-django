@@ -51,5 +51,5 @@ class Text(models.Model):
 	 created_at = models.DateTimeField(default=timezone.now)
 	 text = models.TextField()  # The text (words) enetered by the participant
 
-	def __str__(self):
-		return f"{self.pk}|{self.text[:40]}..."
+	 def __str__(self):
+		 return f"{self.pk}|{self.text[:40]}..."
