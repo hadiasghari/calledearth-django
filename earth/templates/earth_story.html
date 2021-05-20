@@ -24,7 +24,7 @@ span.chapter{
 
 <body>
 	<div class='outer'>
-      	<h1>We Called It Earth</h1>
+      	<h1>We Called It Earth, {{ game.start_time|date }}</h1>
         <!-- TODO: 1. should this be wider? 2. show emojis? -->
         <p>
         {% for t in texts %}

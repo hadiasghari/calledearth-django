@@ -14,8 +14,12 @@ def web_story(request):
     # the homepage is redirected here manually via urls.py
     # (design note: this should be a state activated in DB/cache and the game_id marked)
     the_game = 1373
+    try:
+        go = GamePlay.objects.get(pk=the_game)
+    except GamePlay.DoesNotExist:
+        raise Http404(f"Game {the_game} not found")
     texts = Text.objects.filter(game__pk=the_game).order_by('prompt', 'pk')
-    return render(request, 'earth_story.html', {'texts': texts})
+    return render(request, 'earth_story.html', {'game': go, 'texts': texts})
 
 
 def web_play(request):
@@ -189,7 +193,7 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
-    log = GameLog.objects.create(game=game, event="new_game")
+    #HA/log move to Godot, was: GameLog.objects.create(game=game, event="new_game")
     return JsonResponse(game.pk, safe=False)
 
 
@@ -221,8 +225,8 @@ def godot_get_stats(request, gamek):
         if energy:
             energies += energy
             cache.set(f"e_{p.pk}", "")
-    if energies:
-        GameLog.objects.create(game=go, event=f"energy", info=energies)
+    #if energies:
+    # #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"energy", info=energies)
     data = {'participants': emojies, 'participants+': emojies_plus, 'q_energy': energies,  }
     return JsonResponse(data)
 
@@ -235,7 +239,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.active_prompt = None
         go.state = "?"  # (decide if this is correct)
         go.save()
-        GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
+        #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
     else:
         po, cr = Prompt.objects.get_or_create(pk=promptk)
         if cr:
@@ -244,7 +248,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.active_prompt = po
         go.state = "writing"
         go.save()
-        GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
+        #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
     return JsonResponse(po.provocation if po else "", safe=False)
 
 
@@ -255,18 +259,12 @@ def godot_set_state(request, gamek, state):
     if state not in ("milestone", "event"):
         go.state = state
         go.save()
-        GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
+        #HA/log move to Godot, was: GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
     else:
         # milestones/events are only logged, no game state change.
-        GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
+        pass
+        #HA/log move to Godot, was: GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
     if state != "writing":
         go.active_prompt = None  # also let's unset the prompt
         go.save()
     return JsonResponse(True, safe=False)
-
-
-#def godot_log_event(request, gamek, event):
-    # this method is used to log major game events as they happen (incl death etc)
-#    extra_info = request.GET['info'] if 'info' in request.GET else None
-#    GameLog.objects.create(game=go, event=event, info=extra_info)
-#    return JsonResponse(True, safe=False)
