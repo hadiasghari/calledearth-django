@@ -37,6 +37,7 @@ class Prompt(models.Model):
 
 
 class GameLog(models.Model):
+	# TODO 2021.05.20 -- delete this object and keep the log within godot
 	game = models.ForeignKey(GamePlay, on_delete=models.CASCADE)  # can delete
 	time = models.DateTimeField(default=timezone.now)
 	event = models.CharField(max_length=50, default="", blank=True)
@@ -50,6 +51,7 @@ class Text(models.Model):
 	 prompt_inner = models.CharField(max_length=20, default="", blank=True)  # subprompt (to another user)
 	 created_at = models.DateTimeField(default=timezone.now)
 	 text = models.TextField()  # The text (words) enetered by the participant
+	 flag = models.CharField(max_length=10, null=True, blank=True)
 
 	 def __str__(self):
 		 return f"{self.pk}|{self.text[:40]}..."
