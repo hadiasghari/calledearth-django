@@ -68,7 +68,7 @@ class PromptAdmin(admin.ModelAdmin):
 
 class GameLogAdmin(admin.ModelAdmin):
    list_display = ['pk', 'game', 'time', 'event', 'info']
-   list_filter = ['game', 'event']   
+   list_filter = ['game', 'event']
    ordering = ['-pk', ]
 
 
@@ -76,4 +76,4 @@ admin.site.register(GamePlay, GamePlayAdmin)
 admin.site.register(Prompt, PromptAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Text, TextAdmin)
-admin.site.register(GameLog, GameLogAdmin)
+admin.site.register(XGameLog, GameLogAdmin)

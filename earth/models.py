@@ -36,7 +36,7 @@ class Prompt(models.Model):
 		return f"{self.pk}|{self.provocation[:10]}..."
 
 
-class GameLog(models.Model):
+class XGameLog(models.Model):
 	# TODO 2021.05.20 -- delete this object and keep the log within godot
 	game = models.ForeignKey(GamePlay, on_delete=models.CASCADE)  # can delete
 	time = models.DateTimeField(default=timezone.now)
