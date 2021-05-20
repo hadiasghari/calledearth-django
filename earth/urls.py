@@ -1,11 +1,14 @@
 from django.conf.urls import url
 from django.urls import include, path
+from django.views.generic import RedirectView
 from . import views
 
 
 urlpatterns = [
 	# following are used by the mobile/website part of the game:
-    url(r'^$', views.web_home, name='earth_webhome2'),
+    url(r'^$', RedirectView.as_view(pattern_name='earth_webstory', permanent=False)),  # TODO: change this default for pre-vs-post performance mode
+    url(r'^play$', views.web_story, name='earth_webstory'),
+    url(r'^story$', views.web_play, name='earth_webhome2'),
     url(r'^sendenergy/(?P<partik>\d+)$', views.user_send_energy, name='earth_sendenergy'),
     url(r'^needrefresh/(?P<gamek>\d+)$', views.user_needs_refresh, name='earth_needrefresh'),
     # following are used by godot part of the game:

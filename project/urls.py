@@ -16,11 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-from earth import views as ev
+from django.shortcuts import redirect
+#from earth import views as ev
 
 
 urlpatterns = [
-    path('', ev.web_home, name='earth_webhome'),  # same as /earth/
+    #path('', ev.web_home, name='earth_webhome'),  # same as /earth/
+    path('', lambda request: redirect('earth/', permanent=False)),
     path('earth/', include('earth.urls')),
     path('admin/', admin.site.urls),
 ]

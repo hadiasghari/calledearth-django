@@ -9,7 +9,16 @@ from django.core.cache import cache
 from .models import *
 
 
-def web_home(request):
+def web_story(request):
+    # post performance results of one game.
+    # the homepage is redirected here manually via urls.py
+    # (design note: this should be a state activated in DB/cache and the game_id marked)
+    the_game = 1373
+    texts = Text.objects.filter(game__pk=the_game).order_by('prompt', 'pk')
+    return render(request, 'earth_story.html', {'texts': texts})
+
+
+def web_play(request):
     # 1. find an active game
     game = find_active_game()
     if not game:
@@ -36,8 +45,7 @@ def web_home(request):
 
     # 4A. handle a variety of game states
     if game.state == "credits":
-        # TODO: make this credits+story template
-        # -- which shows whole game story as narrated by audence... (prompt-titles can be loaded via texts)
+        # credits+story template - shows whole game story as narrated by audence...
         texts = Text.objects.filter(game=game).order_by('prompt', 'pk')
         return render(request, 'earth_story.html', {'texts': texts})
 
