@@ -5,7 +5,7 @@ from datetime import timedelta
 
 
 class TextAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'game', 'who', 'created_at', 'prompt', 'text']
+    list_display = ['pk', 'game', 'who', 'created_at', 'prompt', 'text', 'flag']
     list_filter = ['game']
     ordering = ['-pk', ]
 
