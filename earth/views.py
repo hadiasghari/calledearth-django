@@ -32,7 +32,7 @@ def web_play(request):
     # 2. get participant from session (or emoji form)
     parti, response = get_participant_or_httpresponse(game, request)
     if not parti:
-        return response
+        return response if response else HttpResponseRedirect(reverse('earth_webhome2'))
 
     # 3. did we get a form response, then save it and reload so not to lose data
     if 'f_text' in request.GET:
@@ -45,7 +45,7 @@ def web_play(request):
                 text = Text.objects.create(game=game, participant=parti, prompt=f_p, text=t)
                 text.save()
             # continue in this state until active_prompt is reset by GODOT engine
-            return HttpResponseRedirect(reverse('earth_webhome'))
+            return HttpResponseRedirect(reverse('earth_webhome2'))
 
     # 4A. handle a variety of game states
     if game.state == "credits":
@@ -88,7 +88,7 @@ def get_participant_or_httpresponse(game, request):
             parti.geo = ".".join(parti.geo.split('.')[:2]) + ".0.0"
         parti.save()
         request.session['participant'] = parti.pk  # cache for next time
-        return None, HttpResponseRedirect(reverse('earth_webhome'))
+        return None, None
 
     # otherwise, load participant from session, and return that... (reload if fail)
     assert 'participant' in request.session
@@ -98,7 +98,7 @@ def get_participant_or_httpresponse(game, request):
     except:
         parti = None  # either participant doesn't exist or we are in a new game
         del request.session['participant']
-        return None, HttpResponseRedirect(reverse('earth_webhome'))
+        return None, None
 
 
 def maybe_expand_ftext(ftext):

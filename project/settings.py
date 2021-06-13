@@ -38,7 +38,11 @@ else:
     SECURE_SSL_REDIRECT = True
 
 
-ALLOWED_HOSTS = []
+if DEBUG:
+	ALLOWED_HOSTS = ["127.0.0.1", "192.168.2.101"]
+else:
+	ALLOWED_HOSTS = []
+
 
 # Application definition
 INSTALLED_APPS = [
