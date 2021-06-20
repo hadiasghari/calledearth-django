@@ -12,7 +12,7 @@ from .models import *
 def web_story(request):
     # post performance results of one game.
     # the homepage is redirected here manually via urls.py
-    # (design note: this should be a state activated in DB/cache and the game_id marked)
+    # TODO: this should be a state activated in DB/CACHE OR SETTINGS with the game_id marked too...
     the_game = 1373
     try:
         go = GamePlay.objects.get(pk=the_game)
@@ -193,7 +193,7 @@ def godot_new_game(request):
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
-    #HA/log move to Godot, was: GameLog.objects.create(game=game, event="new_game")
+    # Note: log move to Godot, was: GameLog.objects.create(game=game, event="new_game")
     return JsonResponse(game.pk, safe=False)
 
 
@@ -226,7 +226,7 @@ def godot_get_stats(request, gamek):
             energies += energy
             cache.set(f"e_{p.pk}", "")
     #if energies:
-    # #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"energy", info=energies)
+    # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"energy", info=energies)
     data = {'participants': emojies, 'participants+': emojies_plus, 'q_energy': energies,  }
     return JsonResponse(data)
 
@@ -239,7 +239,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.active_prompt = None
         go.state = "?"  # (decide if this is correct)
         go.save()
-        #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
+        # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_unset", info=None)  # log it too
     else:
         po, cr = Prompt.objects.get_or_create(pk=promptk)
         if cr:
@@ -248,7 +248,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.active_prompt = po
         go.state = "writing"
         go.save()
-        #HA/log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
+        # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
     return JsonResponse(po.provocation if po else "", safe=False)
 
 
@@ -259,7 +259,7 @@ def godot_set_state(request, gamek, state):
     if state not in ("milestone", "event"):
         go.state = state
         go.save()
-        #HA/log move to Godot, was: GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
+        # Note: log move to Godot, was: GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
     else:
         # milestones/events are only logged, no game state change.
         pass

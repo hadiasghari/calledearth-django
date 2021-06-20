@@ -31,8 +31,6 @@ class GamePlayAdmin(admin.ModelAdmin):
         return b
     is_active.boolean = True
 
-    # TODO: last_save can come from GameLog if desired
-
     def texts(self, obj):
         return obj.text_set.count()
 
