@@ -188,8 +188,14 @@ def godot_new_game(request):
     # Let's delete all empty participants, games, gamelogs (via cascade),to clear admin UX
     # (When we started testing we used a system user not tied to any prompt; not anymore)
     last_hour = timezone.now() - timedelta(hours=1)
-    Participant.objects.filter(text__isnull=True, joined_at__lt=last_hour).delete()
-    GamePlay.objects.filter(text__isnull=True, start_time__lt=last_hour).delete()
+    try:
+    	Participant.objects.filter(text__isnull=True, joined_at__lt=last_hour).delete()
+    except:
+    	pass
+    try:
+    	GamePlay.objects.filter(text__isnull=True, start_time__lt=last_hour).delete()
+    except:
+    	pass
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
