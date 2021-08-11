@@ -6,7 +6,7 @@ from . import views
 
 urlpatterns = [
 	# following are used by the mobile/website part of the game:
-    url(r'^$', RedirectView.as_view(pattern_name='earth_webstory', permanent=False)),  # TODO: change this default for pre-vs-post performance mode
+    url(r'^$', RedirectView.as_view(pattern_name='earth_webhome2', permanent=False)),  # TODO: change this default for pre-vs-post performance mode
     url(r'^story$', views.web_story, name='earth_webstory'),
     url(r'^play$', views.web_play, name='earth_webhome2'),
     url(r'^sendenergy/(?P<partik>\d+)$', views.user_send_energy, name='earth_sendenergy'),
