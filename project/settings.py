@@ -15,7 +15,7 @@ import sys
 try:
 	import django_heroku   # HA
 except:
-	pass  # ignore locally
+	pass  # ignore eg locally
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'earth'
+    'ws4redis',  # for WS4Redis
+    'earth',
+    'chatserver'  # TODO: test, to remove
 ]
 
 MIDDLEWARE = [
@@ -80,13 +82,22 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                'django.contrib.messages.context_processors.messages',  # necessary? -- was here
+                 # HA:
+                 'django.template.context_processors.static',  # necessary? -- from ws4redis
+                 'ws4redis.context_processors.default',
             ],
+	'libraries': { # HA Adding this section should work around the statictag in the example
+            'staticfiles' : 'django.templatetags.static',
+        },
         },
     },
 ]
 
-WSGI_APPLICATION = 'project.wsgi.application'
+# HA: update for WS4Redis
+#WSGI_APPLICATION = 'project.wsgi.application'
+WSGI_APPLICATION = 'ws4redis.django_runserver.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -155,6 +166,32 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 # HA for Django 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+# HA WS4Redis settings:
+WEBSOCKET_URL = '/ws/'  # distingusih traffic
+WS4REDIS_PREFIX = 'ws'
+WS4REDIS_EXPIRE = 3600
+WS4REDIS_HEARTBEAT = '--heartbeat--'
+
+
+# HA necessary for Heroku since it uses non-default settings
+try:
+    REDIS_URL = os.environ['REDIS_URL']
+    CAPITAL_WS4REDIS_CONNECTION = dj_redis_url.parse(REDIS_URL)
+    WS4REDIS_CONNECTION = {
+        'host': CAPITAL_WS4REDIS_CONNECTION['HOST'],
+        'port': CAPITAL_WS4REDIS_CONNECTION['PORT'],
+        'db': CAPITAL_WS4REDIS_CONNECTION['DB'],
+        'password': CAPITAL_WS4REDIS_CONNECTION['PASSWORD'],
+    }
+
+except:
+    print("REDIS_URL was not found in env")
+
+# HA WS4Redis SESSION -- only necessary if sessions were in DB, not cookies (I think!)
+# SESSION_ENGINE = 'redis_sessions.session'  
+# SESSION_REDIS_PREFIX = 'session'
+# SESSION_REDIS_URL=REDIS_URL
+
 
 # HA for Heroku.
 # loads actual DB settings, etc. no need to remark on local
@@ -166,8 +203,9 @@ if 'django_heroku' in sys.modules:
 
 # HA Setup MemCache for Heroku
 # ref: https://devcenter.heroku.com/articles/django-memcache#create-a-django-application-for-heroku
+# TODO: (2021.09): replace below with REDIS also since we have redis as a dependancy for websockets
+#       https://django-websocket-redis.readthedocs.io/en/latest/installation.html 
 def get_cache():
-  import os
   try:
     servers = os.environ['MEMCACHIER_SERVERS']
     username = os.environ['MEMCACHIER_USERNAME']

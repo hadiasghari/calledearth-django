@@ -1,4 +1,12 @@
 django==3.2.*
-django-heroku  # tested 0.3.x, installs dependencies
-gunicorn  # needed for server not local
-pylibmc  # tested 1.6.1
+django-heroku  # tested 0.3, installs whitenoise, pyscopg2, dj-database-url
+uWSGI  # instead of gunicorn
+django-websocket-redis  # installs redis/six/greenlet/gevent 
+dj-redis-url  # for heroku
+pylibmc  # tested 1.6. (note: might switch to redis later)
+django-utils-six   # seems necessary to separately install?
+# ? websocket-client
+# ? django-redis-sessions --not needed now, maybe later
+# ? django-redis-cache  -- similarly, for later to replace memcache 
+# ?? django-redis
+# ?? wsgiref

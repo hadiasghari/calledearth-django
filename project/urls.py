@@ -23,4 +23,5 @@ urlpatterns = [
     path('', lambda request: redirect('earth/', permanent=False)),
     path('earth/', include('earth.urls')),
     path('admin/', admin.site.urls),
+    path('chat/', include('chatserver.urls')),
 ]
