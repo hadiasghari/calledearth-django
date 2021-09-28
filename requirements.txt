@@ -1,5 +1,4 @@
-django==2.2.*
+django==3.2.*
 django-heroku  # tested 0.3.x, installs dependencies
 gunicorn  # needed for server not local
-Pillow  # tested 7.1.x
 pylibmc  # tested 1.6.1

@@ -152,6 +152,10 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 # SESSION_COOKIE_HTTPONLY: default is True I think
 
 
+# HA for Django 3.2
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
 # HA for Heroku.
 # loads actual DB settings, etc. no need to remark on local
 if 'django_heroku' in sys.modules:
