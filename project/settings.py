@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
+import urllib.parse as urlparse
 try:
 	import django_heroku   # HA
 except:
@@ -172,81 +173,38 @@ WS4REDIS_PREFIX = 'ws'
 WS4REDIS_EXPIRE = 3600
 WS4REDIS_HEARTBEAT = '--heartbeat--'
 
+REDIS_URL = os.environ['REDIS_URL'] if 'REDIS_URL' in os.environ else "redis://:@localhost:6379"
+	
+ru = urlparse.urlparse(REDIS_URL)
+WS4REDIS_CONNECTION = {
+	'host': ru.hostname,
+	'port': int(ru.port),
+	'db': int(ru.path[1:].split('?', 2)[0] or 0),
+	'password': ru.password or None,
+}
 
-# HA necessary for Heroku since it uses non-default settings
-try:
-    REDIS_URL = os.environ['REDIS_URL']
-    CAPITAL_WS4REDIS_CONNECTION = dj_redis_url.parse(REDIS_URL)
-    WS4REDIS_CONNECTION = {
-        'host': CAPITAL_WS4REDIS_CONNECTION['HOST'],
-        'port': CAPITAL_WS4REDIS_CONNECTION['PORT'],
-        'db': CAPITAL_WS4REDIS_CONNECTION['DB'],
-        'password': CAPITAL_WS4REDIS_CONNECTION['PASSWORD'],
+# HA Setup Caching in Heroku
+# Note, switched from MemCache to Redis (2021.09)
+# Note, Redis is needed re websockets even on local/development server, so no fallbacks necessary
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
-
-except:
-    print("REDIS_URL was not found in env")
+}
 
 # HA WS4Redis SESSION -- only necessary if sessions were in DB, not cookies (I think!)
 # SESSION_ENGINE = 'redis_sessions.session'  
 # SESSION_REDIS_PREFIX = 'session'
-# SESSION_REDIS_URL=REDIS_URL
+# SESSION_REDIS_URL = REDIS_URL
 
 
-# HA for Heroku.
-# loads actual DB settings, etc. no need to remark on local
+# HA load Heroku database settings (ignores locally, don't install django_heroku) 
 if 'django_heroku' in sys.modules:
 	DEBUG_PROPAGATE_EXCEPTIONS = True
 	django_heroku.settings(locals())
-	 # ignore locally if module is not installed (hence not imported)
 
 
-# HA Setup MemCache for Heroku
-# ref: https://devcenter.heroku.com/articles/django-memcache#create-a-django-application-for-heroku
-# TODO: (2021.09): replace below with REDIS also since we have redis as a dependancy for websockets
-#       https://django-websocket-redis.readthedocs.io/en/latest/installation.html 
-def get_cache():
-  try:
-    servers = os.environ['MEMCACHIER_SERVERS']
-    username = os.environ['MEMCACHIER_USERNAME']
-    password = os.environ['MEMCACHIER_PASSWORD']
-    return {
-      'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
-        # TIMEOUT is not the connection timeout! It's the default expiration
-        # timeout that should be applied to keys! Setting it to `None` disables expiration.
-        'TIMEOUT': None,
-        'LOCATION': servers,
-        'OPTIONS': {
-          'binary': True,
-          'username': username,
-          'password': password,
-          'behaviors': {
-            # Enable faster IO
-            'no_block': True,
-            'tcp_nodelay': True,
-            # Keep connection alive
-            'tcp_keepalive': True,
-            # Timeout settings
-            'connect_timeout': 2000, # ms
-            'send_timeout': 750 * 1000, # us
-            'receive_timeout': 750 * 1000, # us
-            '_poll_timeout': 2000, # ms
-            # Better failover
-            'ketama': True,
-            'remove_failed': 1,
-            'retry_timeout': 2,
-            'dead_timeout': 30,
-          }
-        }
-      }
-    }
-  except:
-    return {
-	  # for development mode where `memcachier` doesn't exist
-      'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-      }
-    }
-
-CACHES = get_cache()

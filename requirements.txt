@@ -1,12 +1,7 @@
 django==3.2.*
-django-heroku  # tested 0.3, installs whitenoise, pyscopg2, dj-database-url
+django-heroku  # tested 0.3, installs whitenoise, pyscopg2, dj-database-url, dont install locally!
 uWSGI  # instead of gunicorn
-django-websocket-redis  # installs redis/six/greenlet/gevent 
-dj-redis-url  # for heroku
-pylibmc  # tested 1.6. (note: might switch to redis later)
+django-websocket-redis  # also installs redis/six/greenlet/gevent 
 django-utils-six   # seems necessary to separately install?
+django-redis  # supports caching (and sessions?)
 # ? websocket-client
-# ? django-redis-sessions --not needed now, maybe later
-# ? django-redis-cache  -- similarly, for later to replace memcache 
-# ?? django-redis
-# ?? wsgiref
