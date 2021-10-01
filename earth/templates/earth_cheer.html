@@ -34,32 +34,49 @@
     </div>
 	  <footer>"We Called It Earth", by Jessica Renfro & Hadi Asghari</footer>
 
+
+
     <script>
-    window.setInterval('refresh_if_prompt()', 2000);
-    window.setInterval('window.location.reload()', 30000);  // failsafe reload!
-		function refresh_if_prompt() {
-			var ajax = new XMLHttpRequest();
-			ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st={{ state }}', true);
-			ajax.onload = function() {
-				if (this.status == 200 && this.response == "true")
-						window.location.reload();
-			}
-			ajax.send();
-		}
+    window.setInterval('window.location.reload()', 60000);  // failsafe reload! (was 30s, could be 120s)
+
+		// replaced refresh-loop with websocket callbacks!
+		// BTW, one could also use jquery + ws4redis.js, which I am not
+		var ws = new WebSocket('{{ WEBSOCKET_URI }}webusers?subscribe-broadcast&echo');
+		ws.onopen = function() {
+    	console.log("Websocket connected :)");
+		};
+		ws.onmessage = function(e) {
+    	console.log("Received: " + e.data);
+			// (also a heartbeat is received every 5s, one could have a timer checking for it?)
+			if (e.data == "reload")
+				window.location.reload();
+		};
+		ws.onerror = function(e) {
+    	console.error(e);  // hmmm...
+		};
+		ws.onclose = function(e) {
+    	console.log("Websocket closed! :/");
+			// this means server/internet is down, simply moving out of page.. failsafe will reload
+		};
+
 		var sending = 0;
 		async function send_energy(s) {
 			if (sending == 0) {
 				sending++;  // limit simultenous energies
+
+				// TODO: replace below with websockets in a future version too...
 				var ajax = new XMLHttpRequest();
 				var url = '{% url "earth_sendenergy" participant.pk %}?energy=' + s;
 				ajax.open('GET', url, true);
 				ajax.send();
+
 				// some dramatic effect:
 				var img = document.getElementById('img_' + s);
 				var drama = "w3-animate-opacity"; // "w3-spin";
 				img.classList.add(drama);
 				await new Promise(r => setTimeout(r, 500));
 				img.classList.remove(drama);
+
 				--sending;
 			}
 		}

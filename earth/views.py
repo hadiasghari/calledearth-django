@@ -6,6 +6,8 @@ from django.core.serializers import serialize
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
+from ws4redis.redis_store import RedisMessage
+from ws4redis.publisher import RedisPublisher
 from .models import *
 
 
@@ -57,13 +59,18 @@ def web_play(request):
     if not game.active_prompt:
         # this is a number of screen including waiting for prompt, revival, and dancing.
         # only difference among them is the sentence shown which template can choose
+        # (202109: testing WS4Redis callbacks to reduce refresh in cheer-page)
+        redmsg = RedisMessage('welcome [' + parti.get_emoji1() + ']')
+        RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
         return render(request, 'earth_cheer.html', {'state': game.state, 'participant': parti, 'gamek': game.pk})
 
     # 4C. so we are in writing mode. show a prompt form (includes last thing user said)
     # (Future: after the first prompt, the active prompt will change to a random user entered one)
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
-    return render(request, 'earth_write.html', {'emoji': parti.emoji[0] if len(parti.emoji) >= 1 else "!",
+    redmsg = RedisMessage('welcome [' + parti.get_emoji1() + ']')
+    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    return render(request, 'earth_write.html', {'emoji': parti.get_emoji1(),
                                                 'lastsaid': last,
                                                 'prompt': game.active_prompt,
                                                 'gamek': game.pk,})
@@ -145,7 +152,7 @@ def build_emoji_list():
 
 
 def find_active_game():
-    last_hour = timezone.now() - timedelta(hours=1)
+    last_hour = timezone.now() - timedelta(hours=2)
     games = GamePlay.objects.filter(active=1, game_ver=1, start_time__gt=last_hour).order_by('-pk')
     # can be memcached if necessary
     return games[0] if games else None
@@ -161,8 +168,11 @@ def get_client_ip(request):
 
 
 def user_send_energy(request, partik):
-    # this is an ajax call to send energy to godot
-    # we store it in a memache queue and only commit to DB in getstats for speed
+    # This is an ajax call to send energy to godot;
+    # (we store it in a CACHE queue and only commit to DB in getstats for speed)
+
+    # TODO: 202109 THIS METHOD COULD BE replaced with websockets (pushed from browser)... and
+    #       needs sth other than WS4REDIS I think
     ecache = cache.get(f"e_{partik}") or ""
     ecache += request.GET['energy'][0]  # one letter energy type
     cache.set(f"e_{partik}", ecache)
@@ -200,6 +210,11 @@ def godot_new_game(request):
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
     # Note: log move to Godot, was: GameLog.objects.create(game=game, event="new_game")
+
+    # (202109) send reload to webclients (in cheer page; since gameid will change)
+    redmsg = RedisMessage('reload')
+    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+
     return JsonResponse(game.pk, safe=False)
 
 
@@ -227,12 +242,15 @@ def godot_get_stats(request, gamek):
         emojies.append(ord(p.emoji[0]))
         emojies_plus.append(p.emoji)  # includes the full emoji in case we want to display it
         # check all queued energ (powerups)
+
+        # TODO: 202109 THIS PART SHOULD BE REPLACED WITH READING FROM WS4REDIS QUEUE DIRETLY
+        # not so interesting in the current library...
         energy = cache.get(f"e_{p.pk}")
         if energy:
             energies += energy
             cache.set(f"e_{p.pk}", "")
-    #if energies:
-    # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"energy", info=energies)
+
+    # Note: log removed, was: if energies: GameLog.objects.create(game=go, event=f"energy", info=energies)
     data = {'participants': emojies, 'participants+': emojies_plus, 'q_energy': energies,  }
     return JsonResponse(data)
 
@@ -255,6 +273,10 @@ def godot_set_prompt(request, gamek, promptk):
         go.state = "writing"
         go.save()
         # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
+
+    # 202109 send reload to webclients
+    redmsg = RedisMessage('reload')
+    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
     return JsonResponse(po.provocation if po else "", safe=False)
 
 
@@ -263,13 +285,14 @@ def godot_set_state(request, gamek, state):
     go = GamePlay.objects.get(pk=gamek)
     extra_info = request.GET['info'] if 'info' in request.GET else None
     if state not in ("milestone", "event"):
+        # milestones/events used to logged (so no game stage change; now we ignore them fully!)
+        # logs move to Godot, had: GameLog.objects.create(game=go, event="state_" + state, info=extra_info)
+        #                      or: GameLog.objects.create(game=go, event="milestone", info=extra_info)
         go.state = state
         go.save()
-        # Note: log move to Godot, was: GameLog.objects.create(game=go, event="state_" + state, info=extra_info)  # log it too
-    else:
-        # milestones/events are only logged, no game state change.
-        pass
-        #HA/log move to Godot, was: GameLog.objects.create(game=go, event="milestone", info=extra_info)  # log it too
+        # 202109 send a reload to webclients, I THINK! :)
+        redmsg = RedisMessage('reload')
+        RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
     if state != "writing":
         go.active_prompt = None  # also let's unset the prompt
         go.save()

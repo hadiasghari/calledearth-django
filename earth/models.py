@@ -22,6 +22,9 @@ class Participant(models.Model):
 	emoji = models.CharField(max_length=10, default="👓")  # (similar to nickname, for game users)
 	geo = models.CharField(max_length=50, blank=True, null=True)  # ip or geolocation
 
+	def get_emoji1(self):
+		return self.emoji[0] if len(self.emoji) >= 1 else "!"
+
 
 class Prompt(models.Model):
 	# we have some initial prompts. load fixture with: `manage.py loaddata`

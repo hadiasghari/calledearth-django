@@ -31,33 +31,44 @@
 	</div>
 	<script>
 		document.getElementById('f_text').focus();
-		window.setInterval('try_refresh()', 5000);
+
+
 		function count_chars() {
 			// show characters remaining to 120 -- or defined value
 			var nl = {{ prompt.char_limit|default_if_none:120 }} - document.getElementById('f_text').value.length;
 			var scl = document.getElementById('charsleft');
 			scl.textContent = "(" + nl + " characters left)";
 		}
-		var n = 0;
-		function try_refresh() {
-			if (document.getElementById('f_text').value != "")
-				window.setInterval('try_refresh()', 3000);
-			else {
-				// refresh_if_prompt moved on
-				n += 1;
-				if (n >= 10) {
-					// failsafe reload every 30s
-					window.location.reload();
-				}
 
-				var ajax = new XMLHttpRequest();
-					ajax.open('GET', '{% url "earth_needrefresh" gamek %}?st=writing', true);
-					ajax.onload = function() {
-						if (this.status == 200 && this.response == "true")
-								window.location.reload();
-					}
-					ajax.send();
+		// 202109 new websocket based reload check... plus failsafe 60s!
+		window.setInterval('failsafe_refresh()', 60000);
+
+		var ws = new WebSocket('{{ WEBSOCKET_URI }}webusers?subscribe-broadcast&echo');
+		ws.onopen = function() {
+			console.log("Websocket connected :)");
+		};
+		ws.onmessage = function(e) {
+			console.log("Received: " + e.data);
+			// (also a heartbeat is received, one could have a timer checking for it?)
+			if (e.data == "reload") {
+				if (document.getElementById('f_text').value == "")  // ONLY RELOAD IF NO USER TEXT :)
+						window.location.reload();
 			}
+		};
+		ws.onerror = function(e) {
+			console.error(e);  // hmmm...
+		};
+		ws.onclose = function(e) {
+			console.log("Websocket closed! :/");
+			// this means server/internet is down, simply moving out of page.. failsafe will reload
+		};
+
+		function failsafe_refresh() {
+			// refresh whole page every 60s if no text by user has been entered, (to make sure we remain sync)
+			if (document.getElementById('f_text').value == "")
+					window.location.reload();
+			else
+				window.setInterval('failsafe_refresh()', 60000);
 		}
 	</script>
 </body>

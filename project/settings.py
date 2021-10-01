@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ws4redis',  # for WS4Redis
     'earth',
-    'chatserver'  # TODO: test, to remove
 ]
 
 MIDDLEWARE = [

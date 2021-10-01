@@ -10,14 +10,11 @@ https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/
 import os
 from django.conf import settings
 from django.core.wsgi import get_wsgi_application
-from ws4redis.uwsgi_runserver import uWSGIWebsocketServer  # from ws4redis
-#from whitenoise.django import DjangoWhiteNoise  # HA: from heroku example, unclear if necessary 
+from ws4redis.uwsgi_runserver import uWSGIWebsocketServer
 
-# if not os.environ.has_key('DJANGO_SETTINGS_MODULE'):
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
-
 _django_app = get_wsgi_application()
-#_django_app = DjangoWhiteNoise(_django_app)
 _websocket_app = uWSGIWebsocketServer()
 
 
