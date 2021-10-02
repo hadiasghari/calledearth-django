@@ -15,7 +15,7 @@ def web_story(request):
     # post performance results of one game.
     # the homepage is redirected here manually via urls.py
     # TODO: this should be a state activated in DB/CACHE OR SETTINGS with the game_id marked too...
-    the_game = 1373
+    the_game = 1467  # Ams20211001: 1467 # ARTEZ20210520: 1373
     try:
         go = GamePlay.objects.get(pk=the_game)
     except GamePlay.DoesNotExist:
