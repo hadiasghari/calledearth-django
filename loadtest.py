@@ -13,7 +13,7 @@ from selenium import webdriver
 from random import randint
 from time import sleep
 
-browser = webdriver.Chrome()  # 1
+browser = webdriver.Chrome()
 
 # lets start
 browser.get("http://calledearth.herokuapp.com")
@@ -39,10 +39,16 @@ while True:
         powerup.click()
     else:
         # writing prompt. send a random hello
-        txtarea = browser.find_element_by_tag_name("textarea")
+        try:
+            txtarea = browser.find_element_by_tag_name("textarea")
+        except ex:
+            print(ex)  # ended or unexpected, quit
+            break
         n += 1
         txtarea.send_keys("hello friends #" + str(tag) + "." + str(n) )
         f = browser.find_element_by_tag_name("form")
         f.submit()
     # sleep depending on intensity!
-    sleep(1)
+    sleep(2)
+
+browser.close()

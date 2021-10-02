@@ -37,17 +37,26 @@
 
 
     <script>
-    window.setInterval('window.location.reload()', 60000);  // failsafe reload! (was 30s, could be 120s)
+    window.setInterval('window.location.reload()', 40000);  // failsafe reload! (was 30s, could be 90s)
 
 		// replaced refresh-loop with websocket callbacks!
 		// BTW, one could also use jquery + ws4redis.js, which I am not
 		var ws = new WebSocket('{{ WEBSOCKET_URI }}webusers?subscribe-broadcast&echo');
 		ws.onopen = function() {
-    	console.log("Websocket connected :)");
+			const current = new Date();
+			const time = current.toLocaleTimeString("de-DE");
+    	console.log("Websocket connected :)  @" + time);
 		};
 		ws.onmessage = function(e) {
-    	console.log("Received: " + e.data);
-			// (also a heartbeat is received every 5s, one could have a timer checking for it?)
+			if (e.data == "--heartbeat--") {
+				console.log("Received: " + e.data);
+				// (a heartbeat is received every 4s, one could have a timer checking for it?)
+			}
+			else {
+				const current = new Date();
+				const time = current.toLocaleTimeString("de-DE");
+    		console.log("Received: `" + e.data + "` @" + time);
+			}
 			if (e.data == "reload")
 				window.location.reload();
 		};
@@ -55,8 +64,12 @@
     	console.error(e);  // hmmm...
 		};
 		ws.onclose = function(e) {
-    	console.log("Websocket closed! :/");
-			// this means server/internet is down, simply moving out of page.. failsafe will reload
+			const current = new Date();
+			const time = current.toLocaleTimeString("de-DE");
+    	console.log("Websocket closed! :/ @" + time);
+			// this might mean server/internet is down..
+			// or websocket disconnected due to idle timeout, in which case we restart
+			window.setInterval('window.location.reload()', 5000);
 		};
 
 		var sending = 0;

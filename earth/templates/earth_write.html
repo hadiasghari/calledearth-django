@@ -41,7 +41,7 @@
 		}
 
 		// 202109 new websocket based reload check... plus failsafe 60s!
-		window.setInterval('failsafe_refresh()', 60000);
+		window.setInterval('failsafe_refresh()', 40000);
 
 		var ws = new WebSocket('{{ WEBSOCKET_URI }}webusers?subscribe-broadcast&echo');
 		ws.onopen = function() {
@@ -60,15 +60,20 @@
 		};
 		ws.onclose = function(e) {
 			console.log("Websocket closed! :/");
-			// this means server/internet is down, simply moving out of page.. failsafe will reload
+			// this might mean server/internet is down..
+			// or websocket disconnected due to idle timeout, in which case we restart
+			window.setInterval('failsafe_refresh()', 5000);
 		};
 
 		function failsafe_refresh() {
 			// refresh whole page every 60s if no text by user has been entered, (to make sure we remain sync)
+			const current = new Date();
+			const time = current.toLocaleTimeString("de-DE");
+			console.log("In failsafe_refresh() @" + time);
 			if (document.getElementById('f_text').value == "")
 					window.location.reload();
 			else
-				window.setInterval('failsafe_refresh()', 60000);
+				window.setInterval('failsafe_refresh()', 40000);
 		}
 	</script>
 </body>
