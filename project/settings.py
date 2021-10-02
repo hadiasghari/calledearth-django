@@ -87,9 +87,9 @@ TEMPLATES = [
                  'django.template.context_processors.static',  # necessary? -- from ws4redis
                  'ws4redis.context_processors.default',
             ],
-	'libraries': { # HA Adding this section should work around the statictag in the example
-            'staticfiles' : 'django.templatetags.static',
-        },
+	#'libraries': { # HA this section works around the statictag in WS4R example
+        #    'staticfiles' : 'django.templatetags.static',
+        #},
         },
     },
 ]
@@ -142,12 +142,10 @@ STATIC_URL = '/static/'
 
 # HA Static files (CSS, JavaScript, Images)
 # set where to store ()& collect) them; served with whitenoise.
-#PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-#STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, '../staticfiles/'))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, '../staticfiles/'))
 # Extra places for collectstatic to find static files.
-#STATICFILES_DIRS = (
-#    os.path.join(PROJECT_ROOT, '../static-assets'),
-#)
+STATICFILES_DIRS = ( os.path.join(PROJECT_ROOT, '../assets'),)
 
 # Heroku Simplified static file serving.
 if 'django_heroku' in sys.modules:
@@ -173,7 +171,6 @@ WS4REDIS_EXPIRE = 3600
 WS4REDIS_HEARTBEAT = '--heartbeat--'
 
 REDIS_URL = os.environ['REDIS_URL'] if 'REDIS_URL' in os.environ else "redis://:@localhost:6379"
-	
 ru = urlparse.urlparse(REDIS_URL)
 WS4REDIS_CONNECTION = {
 	'host': ru.hostname,
