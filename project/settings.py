@@ -171,6 +171,7 @@ WS4REDIS_EXPIRE = 3600
 WS4REDIS_HEARTBEAT = '--heartbeat--'
 
 REDIS_URL = os.environ['REDIS_URL'] if 'REDIS_URL' in os.environ else "redis://:@localhost:6379"
+REDIS_URL = "redis://:p04820d6c3c7f71577c09ea7f351c987268a8ce8002d229e3dc2c3f57ffc88bdb@ec2-34-253-131-154.eu-west-1.compute.amazonaws.com:18289"
 ru = urlparse.urlparse(REDIS_URL)
 WS4REDIS_CONNECTION = {
 	'host': ru.hostname,
