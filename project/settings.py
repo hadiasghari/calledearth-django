@@ -94,7 +94,7 @@ TEMPLATES = [
     },
 ]
 
-# HA: update for WS4Redis
+# HA: update for WS4Redis => TODO 20221119: REMOVE
 #WSGI_APPLICATION = 'project.wsgi.application'
 WSGI_APPLICATION = 'ws4redis.django_runserver.application'
 
@@ -164,39 +164,36 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 # HA for Django 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# HA WS4Redis settings:
-WEBSOCKET_URL = '/ws/'  # distingusih traffic
-WS4REDIS_PREFIX = 'ws'
-WS4REDIS_EXPIRE = 3600
-WS4REDIS_HEARTBEAT = '--heartbeat--'
-
-REDIS_URL = os.environ['REDIS_URL'] if 'REDIS_URL' in os.environ else "redis://:@localhost:6379"
-REDIS_URL = "redis://:p04820d6c3c7f71577c09ea7f351c987268a8ce8002d229e3dc2c3f57ffc88bdb@ec2-54-216-38-81.eu-west-1.compute.amazonaws.com:26020"
-ru = urlparse.urlparse(REDIS_URL)
-WS4REDIS_CONNECTION = {
-	'host': ru.hostname,
-	'port': int(ru.port),
-	'db': int(ru.path[1:].split('?', 2)[0] or 0),
-	'password': ru.password or None,
-}
-
 # HA Setup Caching in Heroku
 # Note, switched from MemCache to Redis (2021.09)
 # Note, Redis is needed re websockets even on local/development server, so no fallbacks necessary
+
+REDIS_URI = os.environ['REDIS_URL'] if 'REDIS_URL' in os.environ else "redis://:@localhost:6379"
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
+        "LOCATION": REDIS_URI,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
 
-# HA WS4Redis SESSION -- only necessary if sessions were in DB, not cookies (I think!)
-# SESSION_ENGINE = 'redis_sessions.session'  
-# SESSION_REDIS_PREFIX = 'session'
-# SESSION_REDIS_URL = REDIS_URL
+
+# HA WS4Redis settings 
+# NOTE, PLANNED 20221119 TO REMOVE WS4REDIS
+WEBSOCKET_URL = '/ws/'  # distingusih traffic
+WS4REDIS_PREFIX = 'ws'
+WS4REDIS_EXPIRE = 3600
+WS4REDIS_HEARTBEAT = '--heartbeat--'
+ru = urlparse.urlparse(REDIS_URI)  # NOTE: THIS MIGHT BE WHERE THE HEROKU BUG OCCURS -- IF THE URI FORMAT HAS CHANGED
+WS4REDIS_CONNECTION = {
+	'host': ru.hostname,
+	'port': int(ru.port),
+	'db': int(ru.path[1:].split('?', 2)[0] or 0),
+	'password': ru.password or None,
+}
 
 
 # HA load Heroku database settings (ignores locally, don't install django_heroku) 

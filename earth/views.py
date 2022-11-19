@@ -6,9 +6,20 @@ from django.core.serializers import serialize
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
-from ws4redis.redis_store import RedisMessage
-from ws4redis.publisher import RedisPublisher
 from .models import *
+
+## HA 20221119 WS4REDIS was a hacky solution to have websockets and improve the django/heroku responsivity/scability
+#              but it broke after some Heroku Redis update (gives AWS REDIS peer reset connection error).
+#              So removing it for now as test. 
+#              And in general, I think a better solution for WCIE is to remove Heroku/Django all together (given all live performance issues)
+# from ws4redis.redis_store import RedisMessage
+# from ws4redis.publisher import RedisPublisher
+
+
+def push_message_clients(msg='reload'):
+    # redmsg = RedisMessage(msg)
+    # RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    pass
 
 
 def web_story(request):
@@ -60,16 +71,14 @@ def web_play(request):
         # this is a number of screen including waiting for prompt, revival, and dancing.
         # only difference among them is the sentence shown which template can choose
         # (202109: testing WS4Redis callbacks to reduce refresh in cheer-page)
-        redmsg = RedisMessage('welcome [' + parti.get_emoji1() + ']')
-        RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+        push_message_clients('welcome [' + parti.get_emoji1() + ']')
         return render(request, 'earth_cheer.html', {'state': game.state, 'participant': parti, 'gamek': game.pk})
 
     # 4C. so we are in writing mode. show a prompt form (includes last thing user said)
     # (Future: after the first prompt, the active prompt will change to a random user entered one)
     texts = Text.objects.filter(game=game, participant=parti).order_by('-pk')
     last = texts[0].text if texts else None
-    redmsg = RedisMessage('welcome [' + parti.get_emoji1() + ']')
-    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    push_message_clients('welcome [' + parti.get_emoji1() + ']')
     return render(request, 'earth_write.html', {'emoji': parti.get_emoji1(),
                                                 'lastsaid': last,
                                                 'prompt': game.active_prompt,
@@ -171,8 +180,7 @@ def user_send_energy(request, partik):
     # This is an ajax call to send energy to godot;
     # (we store it in a CACHE queue and only commit to DB in getstats for speed)
 
-    # TODO: 202109 THIS METHOD COULD BE replaced with websockets (pushed from browser)... and
-    #       needs sth other than WS4REDIS I think
+    # TODO: 202109 THIS COULD BE replaced with websockets (pushed from browser).. needs sth other than WS4REDIS
     ecache = cache.get(f"e_{partik}") or ""
     ecache += request.GET['energy'][0]  # one letter energy type
     cache.set(f"e_{partik}", ecache)
@@ -199,21 +207,20 @@ def godot_new_game(request):
     # (When we started testing we used a system user not tied to any prompt; not anymore)
     last_hour = timezone.now() - timedelta(hours=1)
     try:
-    	Participant.objects.filter(text__isnull=True, joined_at__lt=last_hour).delete()
+        Participant.objects.filter(text__isnull=True, joined_at__lt=last_hour).delete()
     except:
-    	pass
+        pass
     try:
-    	GamePlay.objects.filter(text__isnull=True, start_time__lt=last_hour).delete()
+        GamePlay.objects.filter(text__isnull=True, start_time__lt=last_hour).delete()
     except:
-    	pass
+        pass
     game = GamePlay.objects.create()  # most game defaults are good
     game.godot_ip = get_client_ip(request)  # in case we ever want to do direct websockets
     game.save()
     # Note: log move to Godot, was: GameLog.objects.create(game=game, event="new_game")
 
     # (202109) send reload to webclients (in cheer page; since gameid will change)
-    redmsg = RedisMessage('reload')
-    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    push_message_clients()
 
     return JsonResponse(game.pk, safe=False)
 
@@ -274,9 +281,7 @@ def godot_set_prompt(request, gamek, promptk):
         go.save()
         # Note: log move to Godot, was: GameLog.objects.create(game=go, event=f"prompt_{promptk}", info=None)  # log it too
 
-    # 202109 send reload to webclients
-    redmsg = RedisMessage('reload')
-    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    push_message_clients()  # 202109 send reload to webclients
     return JsonResponse(po.provocation if po else "", safe=False)
 
 
@@ -290,9 +295,8 @@ def godot_set_state(request, gamek, state):
         #                      or: GameLog.objects.create(game=go, event="milestone", info=extra_info)
         go.state = state
         go.save()
-        # 202109 send a reload to webclients, I THINK! :)
-        redmsg = RedisMessage('reload')
-        RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+        push_message_clients()  # 202109 send reload to webclients, I THINK! :)
+        
     if state != "writing":
         go.active_prompt = None  # also let's unset the prompt
         go.save()

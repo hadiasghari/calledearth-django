@@ -2,8 +2,7 @@ from django.contrib import admin
 from .models import *
 from django.utils import timezone
 from datetime import timedelta
-#from ws4redis.redis_store import RedisMessage
-#from ws4redis.publisher import RedisPublisher
+
 
 
 class TextAdmin(admin.ModelAdmin):
@@ -20,8 +19,7 @@ class TextAdmin(admin.ModelAdmin):
 
 def deactivate_game(modeladmin, request, queryset):
     queryset.update(active=False)
-    # Maybe also notify webusers, as below -- although they will evenetually know :)
-    #RedisPublisher(facility='webusers', broadcast=True).publish_message(RedisMessage("reload"))
+    # Maybe also notify webusers viw webcocket -- although they will evenetually know :)
 deactivate_game.short_description='Deactivate selected games'
 
 class GamePlayAdmin(admin.ModelAdmin):
