@@ -12,14 +12,14 @@ from .models import *
 #              but it broke after some Heroku Redis update (gives AWS REDIS peer reset connection error).
 #              So removing it for now as test. 
 #              And in general, I think a better solution for WCIE is to remove Heroku/Django all together (given all live performance issues)
-# from ws4redis.redis_store import RedisMessage
-# from ws4redis.publisher import RedisPublisher
+from ws4redis.redis_store import RedisMessage
+from ws4redis.publisher import RedisPublisher
 
 
 def push_message_clients(msg='reload'):
-    # redmsg = RedisMessage(msg)
-    # RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
-    pass
+    redmsg = RedisMessage(msg)
+    RedisPublisher(facility='webusers', broadcast=True).publish_message(redmsg)
+    #pass
 
 
 def web_story(request):

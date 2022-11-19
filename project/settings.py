@@ -191,7 +191,7 @@ ru = urlparse.urlparse(REDIS_URI)  # NOTE: THIS MIGHT BE WHERE THE HEROKU BUG OC
 WS4REDIS_CONNECTION = {
 	'host': ru.hostname,
 	'port': int(ru.port),
-	'db': int(ru.path[1:].split('?', 2)[0] or 0),
+	'db': ru.username,  # int(ru.path[1:].split('?', 2)[0] or 0),
 	'password': ru.password or None,
 }
 
